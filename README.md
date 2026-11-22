@@ -1,62 +1,10 @@
 # ha-tplink-card
 
-[Nederlands](#nederlands) · [English](#english)
+[English](#english) · [Nederlands](#nederlands)
 
-![Brede weergave met vier fictieve Deco's, verkeersgrafiek en diagnose](docs/screenshots/desktop.png)
+![Wide layout with four fictional Deco units, a traffic chart, and diagnostics](docs/screenshots/desktop.png)
 
-[Mobiele screenshot / Mobile screenshot](docs/screenshots/mobile.png)
-
-## Nederlands
-
-Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische mesh-topologie, verbonden clients, doorvoer, WiFi-status en API-diagnostiek. De kaart toont gegevens uit Home Assistant. De lijnen geven logische koppelingen aan. Doorvoer is de activiteit die Deco voor clients rapporteert.
-
-### Vereisten
-
-- Home Assistant met ondersteuning voor aangepaste dashboardkaarten.
-- De [TP-Link Deco-integratie](https://github.com/amosyuen/ha-tplink-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
-- Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
-
-### Installeren
-
-#### Via Marketplace
-
-1. Ga in Home Assistant 2026.11 of nieuwer naar **Instellingen → Marketplace** en kies rechtsboven **Toevoegen via link**.
-2. Plak `https://github.com/dkwolf1/ha-tplink-card`. Koppel GitHub als Marketplace daarom vraagt en kies **Dashboard** als het type niet automatisch wordt herkend.
-3. Open **ha-tplink-card** in Marketplace en kies **Installeren**. Als je dashboardbronnen via YAML beheert, neem dan de JavaScript-module uit het installatievenster over.
-4. Vernieuw je browser en voeg **ha-tplink-card** toe via **Kaart toevoegen**.
-
-Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Tot opname in de standaardcatalogus werkt dit als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant-handleiding voor Marketplace](https://www.home-assistant.io/integrations/marketplace/)
-
-#### Handmatig
-
-1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.3.1` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
-3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
-
-Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
-
-### De kaart instellen
-
-In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. Kies **Breed** voor twee kolommen vanaf 900 px kaartbreedte. Gebruik in een Sections-dashboard een brede sectie en **Volledige breedte** voor de kaart, of geef de kaart een apart Paneel-tabblad.
-
-Minimale configuratie:
-
-```yaml
-type: custom:tplink-deco-mesh-card
-```
-
-Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat een brede indeling, venster, secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
-
-### Updates en problemen oplossen
-
-- **Update** de kaart via Marketplace of vervang handmatig het JS-bestand en wijzig het versienummer in de resource-URL. Vernieuw daarna de browser.
-- **Kaart ontbreekt.** Controleer de URL en het type JavaScript-module. Een 404 wijst op een ontbrekend bestand of een verkeerd pad.
-- **Verkeerde of ontbrekende Deco's.** Controleer de TP-Link Deco-integratie en kies bij meerdere installaties de juiste mesh in de kaarteditor.
-- **Lege grafiek of diagnose.** Controleer of Recorder de sensoren opneemt en of de gewenste diagnostische entiteiten zijn ingeschakeld.
-
-### Lokale demo
-
-Start `npm run demo` vanuit deze repo en open [de lokale demo](http://127.0.0.1:4173/demo/). Node.js 24 volstaat voor de demo. Alle voorbeeldwaarden zijn fictief.
+[Mobile screenshot / Mobiele screenshot](docs/screenshots/mobile.png)
 
 ## English
 
@@ -109,6 +57,58 @@ The [extended example](examples/dashboard.yaml) includes a wide layout, history,
 ### Local demo
 
 Run `npm run demo` from this repository and open [the local demo](http://127.0.0.1:4173/demo/). The demo needs only Node.js 24 and uses fictional sample data.
+
+## Nederlands
+
+Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische mesh-topologie, verbonden clients, doorvoer, WiFi-status en API-diagnostiek. De kaart toont gegevens uit Home Assistant. De lijnen geven logische koppelingen aan. Doorvoer is de activiteit die Deco voor clients rapporteert.
+
+### Vereisten
+
+- Home Assistant met ondersteuning voor aangepaste dashboardkaarten.
+- De [TP-Link Deco-integratie](https://github.com/amosyuen/ha-tplink-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
+- Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
+
+### Installeren
+
+#### Via Marketplace
+
+1. Ga in Home Assistant 2026.11 of nieuwer naar **Instellingen → Marketplace** en kies rechtsboven **Toevoegen via link**.
+2. Plak `https://github.com/dkwolf1/ha-tplink-card`. Koppel GitHub als Marketplace daarom vraagt en kies **Dashboard** als het type niet automatisch wordt herkend.
+3. Open **ha-tplink-card** in Marketplace en kies **Installeren**. Als je dashboardbronnen via YAML beheert, neem dan de JavaScript-module uit het installatievenster over.
+4. Vernieuw je browser en voeg **ha-tplink-card** toe via **Kaart toevoegen**.
+
+Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Tot opname in de standaardcatalogus werkt dit als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant-handleiding voor Marketplace](https://www.home-assistant.io/integrations/marketplace/)
+
+#### Handmatig
+
+1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.3.1` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
+
+Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
+
+### De kaart instellen
+
+In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. Kies **Breed** voor twee kolommen vanaf 900 px kaartbreedte. Gebruik in een Sections-dashboard een brede sectie en **Volledige breedte** voor de kaart, of geef de kaart een apart Paneel-tabblad.
+
+Minimale configuratie:
+
+```yaml
+type: custom:tplink-deco-mesh-card
+```
+
+Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat een brede indeling, venster, secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
+
+### Updates en problemen oplossen
+
+- **Update** de kaart via Marketplace of vervang handmatig het JS-bestand en wijzig het versienummer in de resource-URL. Vernieuw daarna de browser.
+- **Kaart ontbreekt.** Controleer de URL en het type JavaScript-module. Een 404 wijst op een ontbrekend bestand of een verkeerd pad.
+- **Verkeerde of ontbrekende Deco's.** Controleer de TP-Link Deco-integratie en kies bij meerdere installaties de juiste mesh in de kaarteditor.
+- **Lege grafiek of diagnose.** Controleer of Recorder de sensoren opneemt en of de gewenste diagnostische entiteiten zijn ingeschakeld.
+
+### Lokale demo
+
+Start `npm run demo` vanuit deze repo en open [de lokale demo](http://127.0.0.1:4173/demo/). Node.js 24 volstaat voor de demo. Alle voorbeeldwaarden zijn fictief.
 
 ## Development and releases
 
