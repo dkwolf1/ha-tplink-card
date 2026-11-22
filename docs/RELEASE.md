@@ -20,7 +20,7 @@ De tool controleert de inhoud en SHA-256 van het ZIP-bestand in `release/`. Het 
 
 ## Eerste push
 
-De openbare GitHub-repository `dkwolf1/ha-tplink-card` is al aangemaakt en is leeg. Controleer dat issues aanstaan en voeg zo nodig een beschrijving en de topics `home-assistant`, `lovelace` en `dashboard-card` toe. Draai eerst de lokale controles hierboven.
+Gebruik dit blok voor de eerste push naar een lege GitHub-repository. De openbare repository `dkwolf1/ha-tplink-card` staat inmiddels online. Gebruik voor gewone wijzigingen de stappen onder [Volgende wijzigingen via een pull request](#volgende-wijzigingen-via-een-pull-request).
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -75,7 +75,7 @@ gh pr create --repo dkwolf1/ha-tplink-card --base main --head $decoBranch --fill
 
 ## GitHub-release na groene CI
 
-Bij een volgende versie kun je met `npm version patch --no-git-tag-version` de packageversie en het lockbestand bijwerken. Pas het versienummer in de bron en documentatie aan, voeg een changelogregel toe, bouw de distributie en merge de PR. De release wordt gemaakt vanaf de gecontroleerde commit op GitHub.
+Voer `npm version patch --no-git-tag-version` alleen uit wanneer je in de kaartrepo aan een volgende versie werkt. Het commando werkt de packageversie en het lockbestand bij. Pas het versienummer in de bron en documentatie aan, voeg een changelogregel toe, bouw de distributie en merge de PR. De release wordt gemaakt vanaf de gecontroleerde commit op GitHub.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -114,7 +114,7 @@ Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home
 
 ## Aanmelding voor de standaardcatalogus
 
-De actuele upstream-branch is **master** en het JSON-bestand heet **plugin**. De catalogus verwacht één alfabetisch ingevoegde repositorynaam en een PR vanuit je persoonlijke fork, met bewerken door maintainers toegestaan. Maak de PR na de succesvolle Marketplace-installatietest. [Catalogusgids](https://contributors.home-assistant.io/marketplace/guides/catalog/) · [Actuele pluginlijst](https://github.com/hacs/default/blob/master/plugin) · [Actuele PR-template](https://github.com/hacs/default/blob/master/.github/PULL_REQUEST_TEMPLATE.md)
+De actuele upstream-branch is **master** en het JSON-bestand heet **plugin**. De catalogus verwacht één alfabetisch ingevoegde repositorynaam en een PR vanuit je persoonlijke fork, met bewerken door maintainers toegestaan. Maak de PR na de succesvolle Marketplace-installatietest. Voor de catalogusindiening gebruik je de catalogusfork en hoef je de kaartversie niet opnieuw te verhogen. [Catalogusgids](https://contributors.home-assistant.io/marketplace/guides/catalog/) · [Actuele pluginlijst](https://github.com/hacs/default/blob/master/plugin) · [Actuele PR-template](https://github.com/hacs/default/blob/master/.github/PULL_REQUEST_TEMPLATE.md)
 
 Voer de blokken hieronder in dezelfde PowerShell-sessie uit. Bestaat je persoonlijke fork al, laat dan de opdracht met `gh repo fork` achterwege. Kies een nieuwe map voor de cataloguscheckout.
 
