@@ -1,0 +1,22 @@
+type: custom:tplink-deco-mesh-card
+title: TP-Link Deco
+view: wide
+history_hours: 6
+compact_chart: true
+grid_options:
+  columns: full
+  rows: auto
+sections:
+  - topology
+  - traffic
+  - nodes
+  - clients
+  - wifi
+  - api
+# Optional. Uncomment and replace the example IDs with your own.
+# entry_id: 01EXAMPLE
+# node_labels:
+#   device_tracker.deco_living_room: Living room
+# entities:
+#   down: sensor.deco_total_down
+#   up: sensor.deco_total_up
