@@ -49,31 +49,18 @@ The [extended example](examples/dashboard.yaml) includes a wide layout, history,
 
 ### Make the card wider
 
-Home Assistant decides how much space the card gets. Select **Formaat → Breed** in the card editor to use two columns once the card itself is at least 900 px wide. A narrower card stacks its content.
+For a wide card, give it its own tab in your existing dashboard.
 
-#### Give the card its own tab
-
-1. Open your dashboard and select the pencil icon to edit it.
-2. Select **+** to add a view. Set the view type to **Panel**, then save.
-3. Add **ha-tplink-card** as the only card on that tab. In its editor, set **Formaat** to **Breed** and save. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/)
-
-#### Keep the card on a Sections tab
-
-1. Edit the dashboard view and set **Max number of sections wide** to at least **3**.
-2. Edit the section containing the card and set its width to **3 columns**.
-3. Edit the card. Set **Formaat** to **Breed**. On the **Layout** tab, turn off **Use recommended size** and enable **Full width** and **Fit height to content**. [Resizing a Home Assistant card](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
-
-If you edit YAML, use the following for the card inside the wide section:
+1. Open the dashboard where you want the card. Select the pencil in the top-right corner.
+2. Select **+** on the top row of dashboard tabs. Name the new tab **Deco** and set **View type** to **Panel (1 card)**. Save the tab. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/)
+3. Open the new **Deco** tab. Select **Add card → Manual**, paste the YAML below, and save the card.
 
 ```yaml
 type: custom:tplink-deco-mesh-card
 view: wide
-grid_options:
-  columns: full
-  rows: auto
 ```
 
-In view YAML, set `max_columns: 3` on the view and `column_span: 3` on the section. If the screen still gives the card less than 900 px, use a Panel view or collapse the sidebar for more room.
+The Panel tab gives the card the entire width of that tab. The card shows two columns when it gets at least 900 px. If it still stacks, maximize the browser and collapse the Home Assistant sidebar. Your existing tab stays as it was.
 
 ### Updates and troubleshooting
 
@@ -129,31 +116,18 @@ Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat een brede indeling, v
 
 ### Maak de kaart breder
 
-Home Assistant bepaalt hoeveel ruimte de kaart krijgt. Kies **Formaat → Breed** in de kaarteditor. Zodra de kaart zelf minstens 900 px breed is, staan de onderdelen in twee kolommen. Bij minder ruimte staan ze onder elkaar.
+Geef de kaart een eigen tabblad binnen je bestaande dashboard.
 
-#### Geef de kaart een eigen tabblad
-
-1. Open je dashboard en klik op het potlood.
-2. Klik op **+** om een tabblad toe te voegen. Kies als weergavetype **Paneel (1 kaart)** en sla op.
-3. Voeg **ha-tplink-card** toe als enige kaart op dat tabblad. Zet **Formaat** op **Breed** en sla op. [Paneelweergave van Home Assistant](https://www.home-assistant.io/dashboards/panel/)
-
-#### Houd de kaart op een tabblad met secties
-
-1. Bewerk het tabblad en zet het maximumaantal secties naast elkaar op minstens **3**.
-2. Bewerk de sectie waarin de kaart staat en stel de sectiebreedte in op **3 kolommen**.
-3. Bewerk de kaart en kies **Formaat → Breed**. Schakel op het tabblad **Indeling** de aanbevolen grootte uit en zet **Volledige breedte** en de optie om de hoogte aan de inhoud aan te passen aan. [Kaartgrootte aanpassen in Home Assistant](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
-
-Gebruik bij YAML-bewerking deze kaartconfiguratie binnen de brede sectie:
+1. Open je dashboard. Klik rechtsboven op het potlood.
+2. Klik bovenaan, in de rij met tabbladen, op **+**. Noem het nieuwe tabblad **Deco** en kies als weergavetype **Paneel (1 kaart)**. Sla het tabblad op. [Paneelweergave van Home Assistant](https://www.home-assistant.io/dashboards/panel/)
+3. Open het nieuwe tabblad **Deco**. Kies **Kaart toevoegen → Handmatig**, plak de YAML hieronder en sla de kaart op.
 
 ```yaml
 type: custom:tplink-deco-mesh-card
 view: wide
-grid_options:
-  columns: full
-  rows: auto
 ```
 
-Zet in de YAML van het tabblad `max_columns: 3` op het tabblad en `column_span: 3` op de sectie. Krijgt de kaart nog geen 900 px ruimte, gebruik dan een paneeltabblad of klap de zijbalk in voor meer ruimte.
+Op een paneeltabblad krijgt de kaart de hele breedte van dat tabblad. Vanaf 900 px staan de onderdelen naast elkaar. Staan ze nog onder elkaar, maximaliseer dan je browser en klap de Home Assistant-zijbalk in. Je bestaande tabblad blijft intact.
 
 ### Updates en problemen oplossen
 
