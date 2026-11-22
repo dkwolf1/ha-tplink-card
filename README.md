@@ -18,11 +18,11 @@ Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische 
 
 ### Installeren via Marketplace
 
-1. Open in Home Assistant 2026.11 of nieuwer [de kaart via deze Marketplace-link](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-deco-mesh-card&category=plugin).
+1. Open in Home Assistant 2026.11 of nieuwer [de kaart via deze Marketplace-link](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
 2. Voeg de repository toe als **Dashboard** als daarom wordt gevraagd en kies **Installeren**. Als je dashboardbronnen via YAML beheert, voeg de bron uit het installatievenster toe als module.
 3. Vernieuw je browser. Kies op je dashboard **Kaart toevoegen → TP-Link Deco Mesh Live**.
 
-Je kunt de link gebruiken zodra de repo en release openbaar zijn. Tot opname in de standaardcatalogus verschijnt de kaart daarna als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-deco-mesh-card&category=plugin).
+Je kunt de link gebruiken zodra de repo en release openbaar zijn. Tot opname in de standaardcatalogus verschijnt de kaart daarna als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
 
 ### Handmatig installeren
 
@@ -65,11 +65,11 @@ A Home Assistant dashboard card for your TP-Link Deco mesh. It shows logical mes
 
 ### Install through Marketplace
 
-1. On Home Assistant 2026.11 or later, [open the card in Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-deco-mesh-card&category=plugin).
+1. On Home Assistant 2026.11 or later, [open the card in Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
 2. Add it as a **Dashboard** repository if prompted and select **Install**. If you manage dashboard resources in YAML, add the module shown by the install dialog.
 3. Reload the browser. Edit your dashboard and choose **Add card → TP-Link Deco Mesh Live**.
 
-The link works once the repository and release are public. Until the card joins the default catalog, it is added as a custom repository. For an older Home Assistant installation with HACS, use the [HACS link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-deco-mesh-card&category=plugin).
+The link works once the repository and release are public. Until the card joins the default catalog, it is added as a custom repository. For an older Home Assistant installation with HACS, use the [HACS link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
 
 ### Install manually
 

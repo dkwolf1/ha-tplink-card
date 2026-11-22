@@ -9,7 +9,7 @@ try {
         'LICENSE' = 'LICENSE'
     }
     $folder = New-Item -ItemType Directory -Path release -Force
-    $zipPath = Join-Path $folder.FullName "ha-tplink-deco-mesh-card-v$releaseVersion.zip"
+    $zipPath = Join-Path $folder.FullName "ha-tplink-card-v$releaseVersion.zip"
     Compress-Archive -LiteralPath @($entries.Values) -DestinationPath $zipPath -Force
     $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
     try {

@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 
 const filename = "tplink-deco-mesh-card.js";
-const communityModule = `/local/community/ha-tplink-deco-mesh-card/${filename}`;
+const communityModule = `/local/community/ha-tplink-card/${filename}`;
 const card = (page) => page.locator("tplink-deco-mesh-card");
 
 test("loads as a JavaScript module at the Marketplace resource path", async ({

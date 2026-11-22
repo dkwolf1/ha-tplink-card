@@ -1,6 +1,6 @@
 # Onderhoud, release en Marketplace
 
-Deze handleiding gaat uit van `dkwolf1/ha-tplink-deco-mesh-card`, `main` en PowerShell 7. Voer de GitHub-stappen zelf uit. De kaart wordt in Marketplace getoond als **Dashboard**. Voor metadata, CI en de catalogus heet de categorie `plugin`. [Officiële kaartgids](https://contributors.home-assistant.io/marketplace/guides/dashboard/)
+Deze handleiding gaat uit van `dkwolf1/ha-tplink-card`, `main` en PowerShell 7. Voer de GitHub-stappen zelf uit. De kaart wordt in Marketplace getoond als **Dashboard**. Voor metadata, CI en de catalogus heet de categorie `plugin`. [Officiële kaartgids](https://contributors.home-assistant.io/marketplace/guides/dashboard/)
 
 ## Lokale controles
 
@@ -20,7 +20,7 @@ De tool controleert de inhoud en SHA-256 van het ZIP-bestand in `release/`. Het 
 
 ## Eerste push
 
-Maak op GitHub een lege **openbare** repository met de naam `ha-tplink-deco-mesh-card` onder `dkwolf1`. Zet issues aan, voeg een beschrijving toe en kies bijvoorbeeld de topics `home-assistant`, `lovelace` en `dashboard-card`. Laat GitHub bij het aanmaken geen README of licentie genereren. Draai eerst de lokale controles hierboven.
+De openbare GitHub-repository `dkwolf1/ha-tplink-card` is al aangemaakt en is leeg. Controleer dat issues aanstaan en voeg zo nodig een beschrijving en de topics `home-assistant`, `lovelace` en `dashboard-card` toe. Draai eerst de lokale controles hierboven.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -28,9 +28,9 @@ $PSNativeCommandUseErrorActionPreference = $true
 Set-Location -LiteralPath 'C:\git\ha-tplink-deco\.local-deco-preview\ha-tplink-deco-mesh-card'
 gh auth status --hostname github.com
 if ((gh api user --jq .login) -ne 'dkwolf1') { throw 'Gebruik het account dkwolf1.' }
-$decoOrigin = 'https://github.com/dkwolf1/ha-tplink-deco-mesh-card.git'
+$decoOrigin = 'https://github.com/dkwolf1/ha-tplink-card.git'
 if ('origin' -notin (git remote)) { git remote add origin $decoOrigin }
-if ((git remote get-url origin) -notin @($decoOrigin, 'git@github.com:dkwolf1/ha-tplink-deco-mesh-card.git')) {
+if ((git remote get-url origin) -notin @($decoOrigin, 'git@github.com:dkwolf1/ha-tplink-card.git')) {
     throw 'Origin wijst naar een andere repository.'
 }
 if (git status --porcelain) { throw 'Commit eerst de gecontroleerde lokale wijzigingen.' }
@@ -70,7 +70,7 @@ git diff --cached --check
 git diff --cached --stat
 git commit -m 'Update TP-Link Deco Mesh Live'
 git push --set-upstream origin $decoBranch
-gh pr create --repo dkwolf1/ha-tplink-deco-mesh-card --base main --head $decoBranch --fill
+gh pr create --repo dkwolf1/ha-tplink-card --base main --head $decoBranch --fill
 ```
 
 ## GitHub-release na groene CI
@@ -81,7 +81,7 @@ Bij een volgende versie kun je met `npm version patch --no-git-tag-version` de p
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
 Set-Location -LiteralPath 'C:\git\ha-tplink-deco\.local-deco-preview\ha-tplink-deco-mesh-card'
-$decoRepo = 'dkwolf1/ha-tplink-deco-mesh-card'
+$decoRepo = 'dkwolf1/ha-tplink-card'
 git switch main
 git pull --ff-only
 if (git status --porcelain) { throw 'De werkmap moet schoon zijn.' }
@@ -106,11 +106,11 @@ if (-not $decoNotes.Success) { throw "Geen changelog voor $decoVersion." }
 $decoNotesFile = New-TemporaryFile
 try {
     Set-Content -LiteralPath $decoNotesFile.FullName -Value $decoNotes.Groups[1].Value.Trim() -Encoding utf8
-    gh release create $decoTag 'dist/tplink-deco-mesh-card.js' "release/ha-tplink-deco-mesh-card-$decoTag.zip" --repo $decoRepo --target $decoCommit --title "TP-Link Deco Mesh Live $decoTag" --notes-file $decoNotesFile.FullName
+    gh release create $decoTag 'dist/tplink-deco-mesh-card.js' "release/ha-tplink-card-$decoTag.zip" --repo $decoRepo --target $decoCommit --title "TP-Link Deco Mesh Live $decoTag" --notes-file $decoNotesFile.FullName
 } finally { Remove-Item -LiteralPath $decoNotesFile.FullName }
 ```
 
-Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home Assistant-testomgeving en installeer de kaart. Controleer dat de resource naar `/local/community/ha-tplink-deco-mesh-card/tplink-deco-mesh-card.js` wijst, dat je de kaart kan toevoegen, dat de juiste Deco-entiteiten worden getoond en dat Recorder-historie en de editor werken. Controleer waar mogelijk mobiel en desktop. Verwijder vóór deze test een eventuele dubbele lokale resource uit het testdashboard. [Marketplace-installatie](https://www.home-assistant.io/integrations/marketplace/)
+Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home Assistant-testomgeving en installeer de kaart. Controleer dat de resource naar `/local/community/ha-tplink-card/tplink-deco-mesh-card.js` wijst, dat je de kaart kan toevoegen, dat de juiste Deco-entiteiten worden getoond en dat Recorder-historie en de editor werken. Controleer waar mogelijk mobiel en desktop. Verwijder vóór deze test een eventuele dubbele lokale resource uit het testdashboard. [Marketplace-installatie](https://www.home-assistant.io/integrations/marketplace/)
 
 ## Aanmelding voor de standaardcatalogus
 
@@ -121,7 +121,7 @@ Voer de blokken hieronder in dezelfde PowerShell-sessie uit. Bestaat je persoonl
 ```powershell
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
-$decoRepo = 'dkwolf1/ha-tplink-deco-mesh-card'
+$decoRepo = 'dkwolf1/ha-tplink-card'
 $decoFork = 'dkwolf1/default'
 $decoCatalogBranch = 'dkw1/add-tplink-deco-mesh-card'
 $decoCatalogPath = 'C:\git\hacs-default-deco'

@@ -8,7 +8,7 @@ const files = new Map([
   ["/demo/index.html", ["../demo/index.html", "text/html"]],
   ["/demo/demo.js", ["../demo/demo.js", "text/javascript"]],
   [`/dist/${filename}`, module],
-  [`/local/community/ha-tplink-deco-mesh-card/${filename}`, module],
+  [`/local/community/ha-tplink-card/${filename}`, module],
 ]);
 
 const port = Number(process.env.DECO_PORT ?? 4173);
