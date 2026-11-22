@@ -16,19 +16,24 @@ Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische 
 - De [TP-Link Deco-integratie](https://github.com/amosyuen/ha-tplink-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
 - Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
 
-### Installeren via Marketplace
+### Installeren
 
-1. Open in Home Assistant 2026.11 of nieuwer [de kaart via deze Marketplace-link](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
-2. Voeg de repository toe als **Dashboard** als daarom wordt gevraagd en kies **Installeren**. Als je dashboardbronnen via YAML beheert, voeg de bron uit het installatievenster toe als module.
-3. Vernieuw je browser. Kies op je dashboard **Kaart toevoegen → TP-Link Deco Mesh Live**.
+#### Via Marketplace
 
-Je kunt de link gebruiken zodra de repo en release openbaar zijn. Tot opname in de standaardcatalogus verschijnt de kaart daarna als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
+1. Ga in Home Assistant 2026.11 of nieuwer naar **Instellingen → Marketplace** en kies rechtsboven **Toevoegen via link**.
+2. Plak `https://github.com/dkwolf1/ha-tplink-card`. Koppel GitHub als Marketplace daarom vraagt en kies **Dashboard** als het type niet automatisch wordt herkend.
+3. Open **TP-Link Deco Mesh Live** in Marketplace en kies **Installeren**. Als je dashboardbronnen via YAML beheert, neem dan de JavaScript-module uit het installatievenster over.
+4. Vernieuw je browser en voeg **TP-Link Deco Mesh Live** toe via **Kaart toevoegen**.
 
-### Handmatig installeren
+Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Tot opname in de standaardcatalogus werkt dit als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant-handleiding voor Marketplace](https://www.home-assistant.io/integrations/marketplace/)
 
-1. Kopieer [de JavaScript-module](dist/tplink-deco-mesh-card.js) naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Ga naar **Instellingen → Dashboards → ⋮ → Bronnen** en voeg `/local/tplink-deco-mesh-card.js?v=1.3.0` toe als **JavaScript-module**.
-3. Vernieuw de browserpagina en voeg de kaart toe. Gebruik één actieve dashboardbron voor de kaart. Bij overstap van de testversie naar Marketplace kun je dezelfde kaartconfiguratie behouden en de oude bron verwijderen. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
+#### Handmatig
+
+1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.3.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+3. Vernieuw je browser en voeg **TP-Link Deco Mesh Live** toe via de kaartkiezer.
+
+Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### De kaart instellen
 
@@ -63,19 +68,24 @@ A Home Assistant dashboard card for your TP-Link Deco mesh. It shows logical mes
 - The [TP-Link Deco integration](https://github.com/amosyuen/ha-tplink-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
 - History requires Home Assistant Recorder to record the total download and upload sensors. Live data remains available without history.
 
-### Install through Marketplace
+### Installation
 
-1. On Home Assistant 2026.11 or later, [open the card in Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
-2. Add it as a **Dashboard** repository if prompted and select **Install**. If you manage dashboard resources in YAML, add the module shown by the install dialog.
-3. Reload the browser. Edit your dashboard and choose **Add card → TP-Link Deco Mesh Live**.
+#### Using Marketplace
 
-The link works once the repository and release are public. Until the card joins the default catalog, it is added as a custom repository. For an older Home Assistant installation with HACS, use the [HACS link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin).
+1. In Home Assistant 2026.11 or later, go to **Settings → Marketplace** and choose **Add from link** in the upper-right corner.
+2. Paste `https://github.com/dkwolf1/ha-tplink-card`. Connect GitHub if prompted and select **Dashboard** if the repository type is not detected.
+3. Open **TP-Link Deco Mesh Live** in Marketplace and select **Install**. If you manage dashboard resources in YAML, use the JavaScript module shown in the installation dialog.
+4. Reload the browser and choose **TP-Link Deco Mesh Live** from **Add card**.
 
-### Install manually
+You can also [open the card directly in Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Until it joins the default catalog, add it as a custom repository. For an older Home Assistant installation with HACS, use the [HACS link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant Marketplace guide](https://www.home-assistant.io/integrations/marketplace/)
 
-1. Copy [the JavaScript module](dist/tplink-deco-mesh-card.js) to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created `www`.
-2. Go to **Settings → Dashboards → ⋮ → Resources** and add `/local/tplink-deco-mesh-card.js?v=1.3.0` as a **JavaScript module**.
-3. Reload the browser and add the card. Keep one active resource for the card. When switching from a local test version to Marketplace, keep your card configuration and remove the old resource. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
+#### Manual installation
+
+1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.3.0` as a **JavaScript module**. For a later release, use that release's version number.
+3. Reload the browser and add **TP-Link Deco Mesh Live** from the card picker.
+
+The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### Configure the card
 
