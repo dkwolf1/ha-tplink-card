@@ -68,7 +68,7 @@ npm audit --audit-level=low
 git add -A
 git diff --cached --check
 git diff --cached --stat
-git commit -m 'Update TP-Link Deco Mesh Live'
+git commit -m 'Update ha-tplink-card'
 git push --set-upstream origin $decoBranch
 gh pr create --repo dkwolf1/ha-tplink-card --base main --head $decoBranch --fill
 ```
@@ -106,7 +106,7 @@ if (-not $decoNotes.Success) { throw "Geen changelog voor $decoVersion." }
 $decoNotesFile = New-TemporaryFile
 try {
     Set-Content -LiteralPath $decoNotesFile.FullName -Value $decoNotes.Groups[1].Value.Trim() -Encoding utf8
-    gh release create $decoTag 'dist/tplink-deco-mesh-card.js' "release/ha-tplink-card-$decoTag.zip" --repo $decoRepo --target $decoCommit --title "TP-Link Deco Mesh Live $decoTag" --notes-file $decoNotesFile.FullName
+    gh release create $decoTag 'dist/tplink-deco-mesh-card.js' "release/ha-tplink-card-$decoTag.zip" --repo $decoRepo --target $decoCommit --title "ha-tplink-card $decoTag" --notes-file $decoNotesFile.FullName
 } finally { Remove-Item -LiteralPath $decoNotesFile.FullName }
 ```
 
@@ -152,7 +152,7 @@ git diff --check
 if ((git diff --numstat -- plugin) -ne "1`t0`tplugin") { throw 'Verwacht exact één toegevoegde regel.' }
 git diff -- plugin
 git add -- plugin
-git commit -m 'Add TP-Link Deco Mesh Live'
+git commit -m 'Add ha-tplink-card'
 git push --set-upstream origin $decoCatalogBranch
 ```
 
@@ -189,10 +189,10 @@ Hassfest and integration-specific manifest and brand checks are not applicable t
 - Passing HACS Action validation: $($decoValidationJob.url)
 - Hassfest: Not applicable.
 
-TP-Link Deco Mesh Live displays mesh topology, connected clients, traffic and diagnostics from the TP-Link Deco integration.
+ha-tplink-card displays mesh topology, connected clients, traffic and diagnostics from the TP-Link Deco integration.
 "@ | Set-Content -LiteralPath $decoPrFile -Encoding utf8
 Get-Content -LiteralPath $decoPrFile
-gh pr create --repo hacs/default --base master --head "dkwolf1:$decoCatalogBranch" --title 'Add TP-Link Deco Mesh Live' --body-file $decoPrFile --web
+gh pr create --repo hacs/default --base master --head "dkwolf1:$decoCatalogBranch" --title 'Add ha-tplink-card' --body-file $decoPrFile --web
 ```
 
 ## Licentie en herkomst

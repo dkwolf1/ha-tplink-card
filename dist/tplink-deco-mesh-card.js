@@ -1,5 +1,5 @@
 /*
- * TP-Link Deco Mesh Live Card v1.3.0
+ * ha-tplink-card v1.3.1
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -28,6 +28,7 @@
 (() => {
   "use strict";
   const CARD_TYPE = "tplink-deco-mesh-card";
+  const CARD_NAME = "ha-tplink-card";
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
   const measureTime = new Intl.DateTimeFormat("nl-NL", {
@@ -233,7 +234,7 @@
     static getStubConfig() {
       return {
         type: `custom:${CARD_TYPE}`,
-        title: "TP-Link Deco",
+        title: CARD_NAME,
         view: "auto",
       };
     }
@@ -997,7 +998,7 @@
       const updateLabel = Number.isFinite(lastUpdate)
         ? `Bijgewerkt ${timeLabel(lastUpdate)}`
         : "Update onbekend";
-      const markup = `<style>${STYLE}</style><ha-card class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || "TP-Link Deco")}</h2><p>Mesh netwerk live</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="Zichtbare onderdelen kiezen">${ico("tune-variant", 18)}<span class="action-label"> Widgets</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? "Online" : d.internet === false ? "Offline" : "Onbekend", "earth")}${this._metric("Verbonden clients", d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric("Download", field(d.down, " kB/s"), "arrow-down-bold")}${this._metric("Upload", field(d.up, " kB/s"), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, "Polling actief", "Polling uit")}</span><span>ha-tplink-deco · Mesh Live</span></div></ha-card>`;
+      const markup = `<style>${STYLE}</style><ha-card class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || CARD_NAME)}</h2><p>Mesh netwerk live</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="Zichtbare onderdelen kiezen">${ico("tune-variant", 18)}<span class="action-label"> Widgets</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? "Online" : d.internet === false ? "Offline" : "Onbekend", "earth")}${this._metric("Verbonden clients", d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric("Download", field(d.down, " kB/s"), "arrow-down-bold")}${this._metric("Upload", field(d.up, " kB/s"), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, "Polling actief", "Polling uit")}</span><span>${esc(CARD_NAME)}</span></div></ha-card>`;
       if (this._lastMarkup !== markup) {
         this._lastMarkup = markup;
         const activeElement = this.shadowRoot.activeElement;
@@ -1129,7 +1130,7 @@
       if (!this.shadowRoot) return;
       const c = this._config,
         styles = `<style>:host{display:block} .editor{display:grid;gap:15px;padding:8px 0;font-family:Roboto,Arial,sans-serif}label{display:grid;gap:4px;font-size:13px}input,select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid var(--divider-color,#777);background:var(--card-background-color,#fff);color:var(--primary-text-color,#222)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.checks label{display:flex;gap:7px;align-items:center}.checks input{width:auto}small{opacity:.75;font-size:11px}</style>`;
-      this.shadowRoot.innerHTML = `${styles}<div class="editor"><label>Titel<input name="title" value="${esc(c.title || "TP-Link Deco")}"/></label><label>Formaat<select name="view">${Object.entries(
+      this.shadowRoot.innerHTML = `${styles}<div class="editor"><label>Titel<input name="title" value="${esc(c.title || CARD_NAME)}"/></label><label>Formaat<select name="view">${Object.entries(
         VIEW_LABELS,
       )
         .map(
@@ -1158,13 +1159,10 @@
   if (!window.customCards.some((x) => x.type === CARD_TYPE))
     window.customCards.push({
       type: CARD_TYPE,
-      name: "TP-Link Deco Mesh Live",
+      name: CARD_NAME,
       description:
         "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
       preview: true,
     });
-  console.info(
-    "%c TP-Link Deco Mesh Live card v1.3.0 ",
-    "background:#008a80;color:white;",
-  );
+  console.info(`%c ${CARD_NAME} v1.3.1 `, "background:#008a80;color:white;");
 })();
