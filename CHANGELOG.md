@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- Use ha-tplink-card as the name in Marketplace, the Home Assistant card picker, and the documentation.
+- Preserve the existing card type, dashboard configuration, and JavaScript resource filename.
+
 ## 1.3.0
 
 - Prepared the card as a standalone dashboard repository with a single distributable module and Marketplace metadata.

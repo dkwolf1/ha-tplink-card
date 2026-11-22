@@ -1,5 +1,5 @@
 type: custom:tplink-deco-mesh-card
-title: TP-Link Deco
+title: ha-tplink-card
 view: wide
 history_hours: 6
 compact_chart: true

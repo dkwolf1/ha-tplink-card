@@ -234,6 +234,8 @@ async function tick() {
   assert.ok(!card.shadowRoot.innerHTML.includes("Woonkamer"));
   assert.ok(defs.has("tplink-deco-mesh-card-editor"));
   assert.equal(Card.getStubConfig().type, "custom:tplink-deco-mesh-card");
+  assert.equal(Card.getStubConfig().title, "ha-tplink-card");
+  assert.equal(globals.window.customCards[0].name, "ha-tplink-card");
 
   // A card with an unavailable registry and no Recorder still renders live data.
   const unavailable = new Card();

@@ -134,7 +134,7 @@ const card = document.getElementById("card");
 card.setConfig({
   type: "custom:tplink-deco-mesh-card",
   view: "wide",
-  title: "TP-Link Deco",
+  title: "ha-tplink-card",
   history_hours: 1,
 });
 card.hass = hass;

@@ -18,7 +18,7 @@ if (process.argv[2] === "build") {
   const lock = JSON.parse(await read("package-lock.json"));
   const moduleText = await read("dist/" + filename);
   assert.deepEqual(metadata, {
-    name: "TP-Link Deco Mesh Live",
+    name: pkg.name,
     filename,
     render_readme: true,
   });
