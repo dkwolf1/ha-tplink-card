@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a problem with the ha-tplink-card dashboard card.
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check whether someone has already reported the problem. If Deco devices or sensors are also missing in Home Assistant outside this card, check the [TP-Link Deco integration](https://github.com/amosyuen/ha-tplink-deco).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe what the card showed or did and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Include the dashboard view and the action that triggers the problem.
+    validations:
+      required: true
+  - type: input
+    id: card-version
+    attributes:
+      label: Card version
+      description: Find this in Marketplace or in the JavaScript resource URL.
+    validations:
+      required: true
+  - type: input
+    id: home-assistant-version
+    attributes:
+      label: Home Assistant version
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Home Assistant Marketplace
+        - HACS
+        - Manual JavaScript resource
+        - Other or unknown
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or Home Assistant app
+      description: Include the version and device if the issue only occurs in one browser or on mobile.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Configuration, logs or screenshots
+      description: Share the relevant card YAML or browser console error if available. Remove tokens, IP and MAC addresses, SSIDs, and private device names.
