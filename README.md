@@ -1,6 +1,6 @@
 # ha-tplink-card
 
-[English](#english) · [Nederlands](#nederlands)
+[English](#english) · [Nederlands](#nederlands) · [Wide layout](#make-the-card-wider) · [Brede weergave](#maak-de-kaart-breder)
 
 ![Wide layout with four fictional Deco units, a traffic chart, and diagnostics](docs/screenshots/desktop.png)
 
@@ -13,7 +13,7 @@ A Home Assistant dashboard card for your TP-Link Deco mesh. It shows logical mes
 ### Requirements
 
 - Home Assistant with support for custom dashboard cards.
-- The [TP-Link Deco integration](https://github.com/amosyuen/ha-tplink-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
+- The [TP-Link Deco integration](https://github.com/dkwolf1/ha-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
 - History requires Home Assistant Recorder to record the total download and upload sensors. Live data remains available without history.
 
 ### Installation
@@ -37,7 +37,7 @@ The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-
 
 ### Configure the card
 
-The card editor sets the title, layout, mesh entry, history range and visible sections. The card UI currently uses Dutch labels. Choose **Breed** for two columns at a card width of at least 900 px. In a Sections dashboard, give the card a wide section and enable full width, or give it a dedicated Panel view.
+The card editor sets the title, layout, mesh entry, history range and visible sections. The card UI currently uses Dutch labels.
 
 Minimal configuration:
 
@@ -46,6 +46,21 @@ type: custom:tplink-deco-mesh-card
 ```
 
 The [extended example](examples/dashboard.yaml) includes a wide layout, history, sections, and an optional label and sensor override. Replace example entity IDs before enabling overrides. Select a Deco to open its details. Hover, tap or focus the plot and use the arrow keys to inspect measurements.
+
+### Make the card wider
+
+For a wide card, give it its own tab in your existing dashboard.
+
+1. Open the dashboard where you want the card. Select the pencil in the top-right corner.
+2. Select **+** on the top row of dashboard tabs. Name the new tab **Deco** and set **View type** to **Panel (1 card)**. Save the tab. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/)
+3. Open the new **Deco** tab. Select **Add card → Manual**, paste the YAML below, and save the card.
+
+```yaml
+type: custom:tplink-deco-mesh-card
+view: wide
+```
+
+The Panel tab gives the card the entire width of that tab. The card shows two columns when it gets at least 900 px. If it still stacks, maximize the browser and collapse the Home Assistant sidebar. Your existing tab stays as it was.
 
 ### Updates and troubleshooting
 
@@ -65,7 +80,7 @@ Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische 
 ### Vereisten
 
 - Home Assistant met ondersteuning voor aangepaste dashboardkaarten.
-- De [TP-Link Deco-integratie](https://github.com/amosyuen/ha-tplink-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
+- De [TP-Link Deco-integratie](https://github.com/dkwolf1/ha-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
 - Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
 
 ### Installeren
@@ -89,7 +104,7 @@ Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com
 
 ### De kaart instellen
 
-In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. Kies **Breed** voor twee kolommen vanaf 900 px kaartbreedte. Gebruik in een Sections-dashboard een brede sectie en **Volledige breedte** voor de kaart, of geef de kaart een apart Paneel-tabblad.
+In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in.
 
 Minimale configuratie:
 
@@ -98,6 +113,21 @@ type: custom:tplink-deco-mesh-card
 ```
 
 Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat een brede indeling, venster, secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
+
+### Maak de kaart breder
+
+Geef de kaart een eigen tabblad binnen je bestaande dashboard.
+
+1. Open je dashboard. Klik rechtsboven op het potlood.
+2. Klik bovenaan, in de rij met tabbladen, op **+**. Noem het nieuwe tabblad **Deco** en kies als weergavetype **Paneel (1 kaart)**. Sla het tabblad op. [Paneelweergave van Home Assistant](https://www.home-assistant.io/dashboards/panel/)
+3. Open het nieuwe tabblad **Deco**. Kies **Kaart toevoegen → Handmatig**, plak de YAML hieronder en sla de kaart op.
+
+```yaml
+type: custom:tplink-deco-mesh-card
+view: wide
+```
+
+Op een paneeltabblad krijgt de kaart de hele breedte van dat tabblad. Vanaf 900 px staan de onderdelen naast elkaar. Staan ze nog onder elkaar, maximaliseer dan je browser en klap de Home Assistant-zijbalk in. Je bestaande tabblad blijft intact.
 
 ### Updates en problemen oplossen
 
