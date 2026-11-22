@@ -13,7 +13,7 @@ A Home Assistant dashboard card for your TP-Link Deco mesh. It shows logical mes
 ### Requirements
 
 - Home Assistant with support for custom dashboard cards.
-- The [TP-Link Deco integration](https://github.com/amosyuen/ha-tplink-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
+- The [TP-Link Deco integration](https://github.com/dkwolf1/ha-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
 - History requires Home Assistant Recorder to record the total download and upload sensors. Live data remains available without history.
 
 ### Installation
@@ -80,7 +80,7 @@ Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische 
 ### Vereisten
 
 - Home Assistant met ondersteuning voor aangepaste dashboardkaarten.
-- De [TP-Link Deco-integratie](https://github.com/amosyuen/ha-tplink-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
+- De [TP-Link Deco-integratie](https://github.com/dkwolf1/ha-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
 - Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
 
 ### Installeren
