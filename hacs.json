@@ -1,5 +1,5 @@
 {
-  "name": "TP-Link Deco Mesh Live",
+  "name": "ha-tplink-card",
   "filename": "tplink-deco-mesh-card.js",
   "render_readme": true
 }
