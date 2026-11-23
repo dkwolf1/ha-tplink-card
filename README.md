@@ -30,14 +30,14 @@ You can also [open the card directly in Marketplace](https://my.home-assistant.i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.6.0` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.7.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### Configure the card
 
-The card editor sets the title, layout, mesh entry, history range and visible sections. The card UI currently uses Dutch labels.
+The card editor sets the title, layout, mesh entry, history range and visible sections. The card and editor follow your Home Assistant profile language. They use Dutch for Dutch profiles and English for other languages.
 
 Minimal configuration:
 
@@ -49,35 +49,35 @@ The [extended example](examples/dashboard.yaml) includes history, sections, and 
 
 ### Optional client controls
 
-Client controls are available from card version `v1.5.0`. The card is read-only by default. With [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) or later, a Home Assistant administrator can enable **Clientbeheer toestaan** in the card editor or set:
+Client controls are available from card version `v1.5.0`. The card is read-only by default. With [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) or later, a Home Assistant administrator can enable **Allow blocking and unblocking clients** in the card editor or set:
 
 ```yaml
 type: custom:tplink-deco-mesh-card
 client_controls: true
 ```
 
-Under **Clientbeheer**, an administrator can block or unblock known clients on the selected mesh, including offline clients with a tracker. Keep the **Clients** section visible. If you have several meshes, choose **Mesh-installatie** in the editor or set its exact `entry_id` in YAML before using the controls.
+Under **Client controls**, an administrator can block or unblock known clients on the selected mesh, including offline clients with a tracker. Keep the **Clients** section visible. If you have several meshes, choose **Mesh installation** in the editor or set its exact `entry_id` in YAML before using the controls.
 
 The card only shows controls when Home Assistant offers `tplink_deco.set_client_blocked` and the entity registry identifies the client's MAC and mesh. It always sends the matching `config_entry_id` with the call. Blocking asks for confirmation. The card displays the result verified by Deco or the error that Home Assistant returns. Connectivity and block status are independent. The confirmation reflects the last action in this card.
 
 #### Rename a Deco client
 
-Renaming is available from card version `v1.6.0`. It is off by default and can be enabled independently of blocking. Use a version of [ha-deco](https://github.com/dkwolf1/ha-deco) that exposes `tplink_deco.rename_client`. In the card editor, enable **Deco-clients hernoemen toestaan**, or set:
+Renaming is available from card version `v1.6.0`. It is off by default and can be enabled independently of blocking. Use a version of [ha-deco](https://github.com/dkwolf1/ha-deco) that exposes `tplink_deco.rename_client`. In the card editor, enable **Allow renaming Deco clients**, or set:
 
 ```yaml
 type: custom:tplink-deco-mesh-card
 client_rename: true
 ```
 
-Keep **Clients** visible. With multiple meshes, choose **Mesh-installatie** in the editor or set `entry_id` in YAML. As a Home Assistant administrator, open **Clientbeheer**, select **Hernoemen** next to a connected client, enter a name of up to 32 UTF-8 bytes, and select **Hernoemen bevestigen**. The card shows the action only when it can verify the client's mesh and MAC address.
+Keep **Clients** visible. With multiple meshes, choose **Mesh installation** in the editor or set `entry_id` in YAML. As a Home Assistant administrator, open **Client controls**, select **Rename** next to a connected client, enter a name of up to 32 UTF-8 bytes, and select **Confirm rename**. The card shows the action only when it can verify the client's mesh and MAC address.
 
 This updates the name on the Deco and preserves the Home Assistant entity ID. The card shows any error and reflects the new name when Home Assistant next reports it.
 
-![Client rename dialog with an example name and a confirmation button](docs/screenshots/client-rename.png)
+![English client rename dialog with an example name and a confirmation button](docs/screenshots/client-rename-en.png)
 
 ### Make the card wider
 
-Add **ha-tplink-card** through the card picker and leave **Formaat** on **Automatisch**. In a Sections dashboard, the card fills its section and fits its height to the content by default. At 800 px of card width, the topology and diagnostics appear side by side. On narrower cards they stack.
+Add **ha-tplink-card** through the card picker and leave **Layout** on **Automatic**. In a Sections dashboard, the card fills its section and fits its height to the content by default. At 800 px of card width, the topology and diagnostics appear side by side. On narrower cards they stack.
 
 Home Assistant sets the space available to each card. To fill a whole tab, place this card alone on a **Panel (1 card)** tab. On an existing card, a saved size override in **Layout** still applies. Select **Use recommended size** to restore the new default. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/) · [Resizing a card](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
 
@@ -133,14 +133,14 @@ Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assist
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.6.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.7.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### De kaart instellen
 
-In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in.
+In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. De kaart en editor volgen de taal van je Home Assistant-profiel. Bij een Nederlands profiel zie je Nederlands, bij andere talen Engels.
 
 Minimale configuratie:
 

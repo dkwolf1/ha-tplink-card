@@ -149,6 +149,7 @@ const decoError = add(
 let historyRequests = 0;
 let historyEntityIds = [];
 const hass = {
+  language: "nl",
   states,
   connection: {
     sendMessagePromise: async (message) => {
@@ -252,6 +253,7 @@ async function tick() {
     view: "compact",
   });
   unavailable.hass = {
+    language: "nl",
     states: {
       [eid("device_tracker", "fallback")]: {
         state: "home",

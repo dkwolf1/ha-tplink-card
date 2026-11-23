@@ -48,6 +48,7 @@ async function setUp(page, options = {}) {
     }
     const calls = [];
     const hass = {
+      language: options.language ?? "nl",
       states,
       user: { is_admin: options.admin !== false },
       services: {
@@ -93,6 +94,92 @@ const renameButton = (page, name = "Test phone") =>
   panel(page).getByRole("button", { name: `Hernoemen: ${name}`, exact: true });
 const renameDialog = (page) => card(page).getByRole("dialog");
 const renameConfig = { client_rename: true };
+
+test("localizes the editor and client actions using the Home Assistant language @screenshots", async ({
+  page,
+}) => {
+  await setUp(page, {
+    language: "en-GB",
+    phoneState: "home",
+    renameService: true,
+    config: { ...renameConfig, client_controls: true },
+    failure: true,
+  });
+  await expect(card(page).locator("ha-card")).toHaveAttribute("lang", "en");
+  await expect(
+    card(page).getByRole("heading", { name: "Network activity" }),
+  ).toBeVisible();
+  await expect(
+    card(page).getByRole("heading", { name: "Wi-Fi networks" }),
+  ).toBeVisible();
+  await expect(card(page).locator(".topology-note")).toContainText(
+    "reported satellite connections",
+  );
+  await expect(card(page).locator(".topology-meta")).toContainText(
+    "1 Deco unit · 0 satellites",
+  );
+  await expect(card(page).locator(".bands")).toContainText("2.4 GHz");
+  await expect(
+    card(page).getByText("No Recorder history available."),
+  ).toBeVisible();
+  await card(page).getByRole("button", { name: "Details for mesh a" }).click();
+  await expect(
+    card(page).getByRole("button", { name: "Close details" }),
+  ).toBeVisible();
+
+  await card(page).evaluate((element) => {
+    const editor = element.constructor.getConfigElement();
+    editor.setConfig({ type: "custom:tplink-deco-mesh-card" });
+    editor.hass = globalThis.decoActions.hass;
+    element.ownerDocument.body.append(editor);
+  });
+  const editor = page.locator("tplink-deco-mesh-card-editor");
+  await expect(editor.getByLabel("History range")).toHaveValue("1");
+  await expect(
+    editor.getByRole("checkbox", { name: "Allow renaming Deco clients" }),
+  ).toBeVisible();
+
+  await panel(page).getByRole("button", { name: "Rename: Test phone" }).click();
+  const dialog = renameDialog(page);
+  await expect(dialog).toHaveAccessibleName("Rename client");
+  const input = dialog.getByRole("textbox", { name: "New name" });
+  await input.fill("");
+  await dialog.getByRole("button", { name: "Confirm rename" }).click();
+  await expect(dialog.getByRole("alert")).toContainText("1 to 32 UTF-8 bytes");
+  await input.fill("Test name");
+  if (process.env.UPDATE_SCREENSHOTS === "1") {
+    await input.fill("Living room phone");
+    await dialog.screenshot({
+      path: "docs/screenshots/client-rename-en.png",
+      animations: "disabled",
+    });
+  }
+  await dialog.getByRole("button", { name: "Confirm rename" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Rename failed. Router rejected the request <em>test</em>",
+  );
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+
+  const confirmation = page.waitForEvent("dialog").then(async (prompt) => {
+    expect(prompt.message()).toContain("Block Test phone?");
+    await prompt.accept();
+  });
+  await panel(page)
+    .getByRole("button", { name: "Block: Test phone", exact: true })
+    .click();
+  await confirmation;
+  await expect(panel(page).getByRole("alert")).toContainText("Action failed.");
+
+  await card(page).evaluate((element) => {
+    const hass = { ...globalThis.decoActions.hass, language: "nl-NL" };
+    element.hass = hass;
+    element.ownerDocument.querySelector("tplink-deco-mesh-card-editor").hass =
+      hass;
+  });
+  await expect(card(page).locator("ha-card")).toHaveAttribute("lang", "nl");
+  await expect(panel(page).getByRole("alert")).toContainText("Actie mislukt.");
+  await expect(editor.getByLabel("Grafiekvenster")).toHaveValue("1");
+});
 
 for (const [name, options] of [
   ["default configuration", { config: {} }],
