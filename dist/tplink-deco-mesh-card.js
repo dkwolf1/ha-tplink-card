@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.4.0
+ * ha-tplink-card v1.5.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -29,6 +29,8 @@
   "use strict";
   const CARD_TYPE = "tplink-deco-mesh-card";
   const CARD_NAME = "ha-tplink-card";
+  const DECO_DOMAIN = "tplink_deco";
+  const CLIENT_BLOCK_ACTION = "set_client_blocked";
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
   const measureTime = new Intl.DateTimeFormat("nl-NL", {
@@ -139,6 +141,24 @@
   function reading(hass, item) {
     return numeric(stateVal(hass, item));
   }
+  function canCallClientBlockAction(hass) {
+    return (
+      hass?.user?.is_admin === true &&
+      hass.connected !== false &&
+      !!hass.services?.[DECO_DOMAIN]?.[CLIENT_BLOCK_ACTION] &&
+      typeof hass.callService === "function"
+    );
+  }
+
+  function normalizeClientMac(value) {
+    if (typeof value !== "string") return null;
+    const mac = value.trim().toUpperCase().replace(/-/g, ":");
+    if (!/^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(mac)) return null;
+    if (mac === "00:00:00:00:00:00" || parseInt(mac.slice(0, 2), 16) % 2)
+      return null;
+    return mac;
+  }
+
   function macOf(entry, hassState) {
     return normalize(hassState?.attributes?.mac || entry?.unique_id || "");
   }
@@ -256,6 +276,7 @@
       this._historyLoading = false;
       this._selectedNode = null;
       this._showAllClients = false;
+      this._clientActionFeedback = new Map();
       this._chartTime = null;
       this._localSections = null;
       this._expanded = false;
@@ -306,6 +327,12 @@
       this._queueRender();
     }
     set hass(value) {
+      if (
+        this._hass?.connection !== value?.connection ||
+        this._hass?.user?.id !== value?.user?.id
+      ) {
+        this._clientActionFeedback = new Map();
+      }
       this._hass = value;
       this._ensureRegistry();
       this._queueRender();
@@ -395,17 +422,17 @@
           e.config_entry_id === entries.selected ||
           (!e.config_entry_id && entries.selected === "onbekend"),
       );
-      const ids = new Set(regs.map((e) => e.entity_id));
+      const registryById = new Map(regs.map((e) => [e.entity_id, e]));
       const registryAvailable = this._registry !== null;
       const stateEntries = Object.entries(allStates).filter(
         ([id, s]) =>
           id.startsWith("device_tracker.") &&
           s?.attributes?.device_type &&
           ["deco", "client"].includes(s.attributes.device_type) &&
-          (!registryAvailable || ids.has(id)),
+          (!registryAvailable || registryById.has(id)),
       );
       // Prefer the integration registry. Fallback only if it cannot be read.
-      const regFor = (entityId) => regs.find((e) => e.entity_id === entityId);
+      const regFor = (entityId) => registryById.get(entityId);
       const sensorEntity = (suffix, deviceId = null, uniquePrefix = null) => {
         const match = regs.find(
           (e) =>
@@ -502,8 +529,11 @@
         .filter(([, s]) => s.attributes.device_type === "client")
         .map(([id, s]) => {
           const a = s.attributes;
+          const registry = regFor(id);
           return {
             id,
+            registry,
+            reportedMac: a.mac,
             name: a.ui_device_name || a.friendly_name || id,
             online: isOnline(s.state),
             mac: normalize(a.deco_mac),
@@ -755,6 +785,95 @@
     _sections() {
       return this._localSections || this._config.sections || DEFAULT_SECTIONS;
     }
+    _clientActionTargets(data) {
+      const entry = data.entries.selected;
+      if (
+        this._config.client_controls !== true ||
+        !this._sections().includes("clients") ||
+        !canCallClientBlockAction(this._hass) ||
+        this._registryLoading ||
+        this._registryConnection !== this._hass.connection ||
+        !entry ||
+        entry === "onbekend" ||
+        data.entries.multiple ||
+        !data.nodes.length
+      )
+        return [];
+
+      return data.clients.flatMap((client) => {
+        const registry = client.registry;
+        if (
+          registry?.platform !== DECO_DOMAIN ||
+          registry.config_entry_id !== entry
+        )
+          return [];
+        // v4.0.0 uses the client MAC as the tracker unique ID, including for linked devices.
+        const mac = normalizeClientMac(registry.unique_id);
+        if (
+          !mac ||
+          (client.reportedMac != null &&
+            normalizeClientMac(client.reportedMac) !== mac)
+        )
+          return [];
+        return [
+          {
+            id: client.id,
+            name: client.name,
+            entry,
+            mac,
+            key: JSON.stringify([entry, mac]),
+          },
+        ];
+      });
+    }
+    async _setClientBlocked(button, blocked) {
+      const target = this._clientActionTargets(this._data()).find(
+        (client) =>
+          client.id === button.dataset.id &&
+          client.entry === button.dataset.entry &&
+          client.mac === button.dataset.mac,
+      );
+      const feedback = this._clientActionFeedback;
+      if (!target || feedback.get(target.key)?.pending) return;
+      if (
+        blocked &&
+        !window.confirm(
+          `${target.name} blokkeren? Dit kan de netwerkverbinding verbreken.`,
+        )
+      )
+        return;
+
+      feedback.set(target.key, { pending: true, message: "Actie uitvoeren…" });
+      this._queueRender();
+      try {
+        const result = await this._hass.callService(
+          DECO_DOMAIN,
+          CLIENT_BLOCK_ACTION,
+          { config_entry_id: target.entry, mac: target.mac, blocked },
+          undefined,
+          false,
+          true,
+        );
+        if (result?.response?.blocked !== blocked) {
+          throw new Error(
+            "Deco heeft de gevraagde blokkeerstatus niet bevestigd.",
+          );
+        }
+        const message = blocked
+          ? "Deco bevestigt: geblokkeerd."
+          : "Deco bevestigt: gedeblokkeerd.";
+        feedback.set(target.key, { message });
+      } catch (error) {
+        const reason = error?.message || error?.error?.message;
+        const message =
+          typeof reason === "string" && reason
+            ? `Actie mislukt. ${reason}`
+            : "Actie mislukt. Deco heeft de wijziging niet bevestigd.";
+        feedback.set(target.key, { message, error: true });
+      } finally {
+        this._queueRender();
+      }
+    }
     _onClick(e) {
       if (this._pointAtChart(e)) return;
       const b = e.target.closest("[data-action]");
@@ -768,6 +887,8 @@
         this._selectedNode = null;
         this._showAllClients = false;
         this._queueRender();
+      } else if (a === "block-client" || a === "unblock-client") {
+        this._setClientBlocked(b, a === "block-client");
       } else if (a === "toggle-clients") {
         this._showAllClients = !this._showAllClients;
         this._queueRender();
@@ -876,6 +997,28 @@
     _nodesPanel(d) {
       return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} Deco-status en diagnose</h3><small>CPU / RAM per node</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>Clients</span><span>CPU</span><span>RAM</span><span>Backhaul</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, "%")}</span><span>${field(n.memory, "%")}</span><span>${esc(n.master ? "Hoofd" : n.connection)}</span></button>`).join("")}</div></section>`;
     }
+    _clientControlsPanel(d) {
+      const targets = this._clientActionTargets(d).sort((a, b) =>
+        String(a.name).localeCompare(String(b.name), "nl"),
+      );
+      if (!targets.length) return "";
+      const rows = targets
+        .map((client) => {
+          const feedback = this._clientActionFeedback.get(client.key);
+          const buttons = [
+            ["block-client", "Blokkeren"],
+            ["unblock-client", "Deblokkeren"],
+          ]
+            .map(
+              ([action, label]) =>
+                `<button type="button" class="tiny-btn" data-action="${action}" data-id="${esc(client.id)}" data-entry="${esc(client.entry)}" data-mac="${esc(client.mac)}" aria-label="${label}: ${esc(client.name)}" ${feedback?.pending ? "disabled" : ""}>${label}</button>`,
+            )
+            .join("");
+          return `<li class="client-control-row"><b>${esc(client.name)}</b><div class="client-control-actions">${buttons}</div><span class="client-control-feedback${feedback?.error ? " action-error" : ""}" role="${feedback?.error ? "alert" : "status"}">${esc(feedback?.message)}</span></li>`;
+        })
+        .join("");
+      return `<section class="panel client-controls"><div class="section-head"><h3>${ico("lock", 17)} Clientbeheer</h3></div><ul class="client-control-list">${rows}</ul></section>`;
+    }
     _clientsPanel(d) {
       const active = d.clients.filter((c) => c.online);
       const groups = [
@@ -980,15 +1123,16 @@
         const wifi = section("wifi", this._wifiPanel(d));
         const nodes = section("nodes", this._nodesPanel(d));
         const clients = section("clients", this._clientsPanel(d));
+        const clientControls = this._clientControlsPanel(d);
         const api = section("api", this._apiPanel(d));
         const overview = topology + traffic + api;
         body =
           layout === "wide" && overview
             ? `<div class="mesh-columns">
               <div>${overview}</div>
-              <div>${health}<div class="mesh-secondary">${wifi}${clients}</div>${nodes}${details}</div>
+              <div>${health}<div class="mesh-secondary">${wifi}${clients}</div>${nodes}${details}${clientControls}</div>
             </div>`
-            : `${topology}${details}${health}<div class="lower-grid">${traffic}${wifi}${nodes}${clients}</div>${api}`;
+            : `${topology}${details}${health}<div class="lower-grid">${traffic}${wifi}${nodes}${clients}</div>${clientControls}${api}`;
       }
       const lastUpdate = Math.max(
         ...[d.decoUpdate, d.clientUpdate]
@@ -1005,7 +1149,14 @@
         const chartFocused = activeElement?.classList.contains("chart-plot");
         const clientToggleFocused =
           activeElement?.dataset.action === "toggle-clients";
+        const clientScroll = this.shadowRoot.querySelector?.(
+          ".client-control-list",
+        )?.scrollTop;
         this.shadowRoot.innerHTML = markup;
+        if (clientScroll) {
+          const list = this.shadowRoot.querySelector(".client-control-list");
+          if (list) list.scrollTop = clientScroll;
+        }
         if (this._chartTime != null || chartFocused) {
           const plot = this.shadowRoot.querySelector(".chart-plot");
           if (plot && this._chartTime != null) this._updateChartReadout(plot);
@@ -1047,6 +1198,15 @@
     .footer{justify-content:space-between;margin-top:12px;padding:10px 12px;border:1px solid #4b9ab53b;border-radius:12px;background:#0c344267;color:#aac4cf;font-size:11px;gap:10px;flex-wrap:wrap}.footer span{display:flex;align-items:center;gap:5px}.footer .status{font-size:11px}.footer ha-icon{color:#5ee6d5}
     .notice{background:#634c122a;border:1px solid #ffdb986b;padding:10px;border-radius:9px;font-size:12px;color:#ffdeb5;margin-bottom:12px}.notice code{font-family:monospace}.no-data{display:flex;align-items:center;flex-direction:column;text-align:center;gap:10px;padding:45px 18px;color:#a6cad2}.no-data>b{color:#fff}.no-data p{max-width:460px;line-height:1.6}.no-data button{border:1px solid #20cbb7;background:#0b5459;color:#e9fffd;border-radius:9px;padding:9px 14px}.widget-picker{margin-bottom:12px}.choices{display:flex;flex-wrap:wrap;gap:7px}.choice{border:1px solid #43838b;color:#9dc6cb;background:#071f2d;border-radius:8px;padding:6px 9px;font-size:11px}.choice.chosen{border-color:#2fe1be;color:#6ff4d6;background:#11534755}
     .compact{padding:13px;border-radius:16px}.compact .summary{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .header-actions .action-label{display:none}.compact .update-mark{max-width:88px;font-size:10px}.compact .head-title h2{font-size:18px}.compact .metric{min-height:63px}.compact .health-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .lower-grid{grid-template-columns:1fr}.compact .mesh-canvas{height:280px}.compact .node{width:103px;min-height:81px;padding:6px;gap:2px}.compact .node.root{width:114px;min-height:91px}.compact .node b,.compact .node.root b{font-size:11px}.compact .node-info{flex-wrap:wrap;gap:0}.compact .node-info small{display:none}.compact .cylinder,.compact .node.root .cylinder{width:26px;height:24px;margin-top:-9px}.compact .node-type{font-size:9px}.compact .topology-meta{font-size:10px}.compact .api-grid,.compact .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .topology-note{font-size:9px}.compact .panel{padding:12px}.compact .chart-svg{height:110px}
+    .client-control-list{list-style:none;margin:0;padding:0;max-height:18rem;overflow:auto}
+    .client-control-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 2px;border-top:1px solid #29808c40;font-size:11px}
+    .client-control-row>b{overflow-wrap:anywhere;flex:1 1 96px}
+    .client-control-actions{display:flex;flex-wrap:wrap;gap:5px}
+    .client-control-actions .tiny-btn{font-size:11px;padding:5px 7px}
+    .client-control-actions button:disabled{opacity:.65;cursor:wait}
+    .client-control-feedback{flex-basis:100%;color:#c1dde4;overflow-wrap:anywhere}
+    .client-control-feedback:empty{display:none}
+    .client-control-feedback.action-error{color:#ffad9d}
     .mesh-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:12px}
     .mesh-columns>div{display:grid;gap:10px;min-width:0}
     .mesh-columns .topology,.mesh-columns .detail-panel,.mesh-columns .health-strip{margin:0}
@@ -1086,7 +1246,10 @@
     }
     set hass(hass) {
       if (this._hass === hass) return;
+      const couldControlClients = canCallClientBlockAction(this._hass);
       this._hass = hass;
+      if (couldControlClients !== canCallClientBlockAction(hass))
+        this._render();
       this._loadEntries();
     }
     async _loadEntries() {
@@ -1115,7 +1278,8 @@
         const set = new Set(next.sections || DEFAULT_SECTIONS);
         t.checked ? set.add(t.name) : set.delete(t.name);
         next.sections = DEFAULT_SECTIONS.filter((s) => set.has(s));
-      } else if (t.name === "history_hours") next[t.name] = Number(t.value);
+      } else if (t.name === "client_controls") next[t.name] = t.checked;
+      else if (t.name === "history_hours") next[t.name] = Number(t.value);
       else next[t.name] = t.value;
       this._config = next;
       this.dispatchEvent(
@@ -1129,7 +1293,7 @@
     _render() {
       if (!this.shadowRoot) return;
       const c = this._config,
-        styles = `<style>:host{display:block} .editor{display:grid;gap:15px;padding:8px 0;font-family:Roboto,Arial,sans-serif}label{display:grid;gap:4px;font-size:13px}input,select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid var(--divider-color,#777);background:var(--card-background-color,#fff);color:var(--primary-text-color,#222)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.checks label{display:flex;gap:7px;align-items:center}.checks input{width:auto}small{opacity:.75;font-size:11px}</style>`;
+        styles = `<style>:host{display:block} .editor{display:grid;gap:15px;padding:8px 0;font-family:Roboto,Arial,sans-serif}label{display:grid;gap:4px;font-size:13px}input,select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid var(--divider-color,#777);background:var(--card-background-color,#fff);color:var(--primary-text-color,#222)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.checks label{display:flex;gap:7px;align-items:center}.checks input,.control-setting input{width:auto}.control-setting{display:flex;align-items:center}small{opacity:.75;font-size:11px}</style>`;
       this.shadowRoot.innerHTML = `${styles}<div class="editor"><label>Titel<input name="title" value="${esc(c.title || CARD_NAME)}"/></label><label>Formaat<select name="view">${Object.entries(
         VIEW_LABELS,
       )
@@ -1139,7 +1303,7 @@
         )
         .join(
           "",
-        )}</select></label><label>Mesh-installatie<select name="entry_id"><option value="">Automatisch (eerste installatie)</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>Grafiekvenster<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${h} uur</option>`).join("")}</select></label><label>Zichtbare secties</label><div class="checks">${Object.entries(
+        )}</select></label><label>Mesh-installatie<select name="entry_id"><option value="">Automatisch (eerste installatie)</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>Grafiekvenster<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${h} uur</option>`).join("")}</select></label>${canCallClientBlockAction(this._hass) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> Clientbeheer toestaan (blokkeren en deblokkeren)</label>` : ""}<label>Zichtbare secties</label><div class="checks">${Object.entries(
         SECTION_LABELS,
       )
         .map(
@@ -1164,5 +1328,5 @@
         "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.4.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v1.5.0 `, "background:#008a80;color:white;");
 })();
