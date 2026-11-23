@@ -71,7 +71,7 @@ add(
   "deco0",
   152,
 );
-add("sensor", "query", macs[0] + "_client_query_mode", "deco0", "Hybrid");
+add("sensor", "query", macs[0] + "_client_query_mode", "deco0", "per_node");
 add("sensor", "timeouts", macs[0] + "_client_timeout_count", "deco0", 0);
 add("sensor", "last_error", macs[0] + "_client_last_error", "deco0", 0);
 add(

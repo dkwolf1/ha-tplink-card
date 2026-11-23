@@ -30,14 +30,14 @@ You can also [open the card directly in Marketplace](https://my.home-assistant.i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.7.0` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.8.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### Configure the card
 
-The card editor sets the title, layout, mesh entry, history range and visible sections. The card and editor follow your Home Assistant profile language. They use Dutch for Dutch profiles and English for other languages.
+The card editor sets the title, layout, mesh entry, history range and visible sections. The card and editor follow your Home Assistant profile language. They support English, Dutch, German and French, with English as the fallback.
 
 Minimal configuration:
 
@@ -133,14 +133,14 @@ Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assist
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.7.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.8.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
 
 ### De kaart instellen
 
-In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. De kaart en editor volgen de taal van je Home Assistant-profiel. Bij een Nederlands profiel zie je Nederlands, bij andere talen Engels.
+In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. De kaart en editor volgen de taal van je Home Assistant-profiel. Ze ondersteunen Engels, Nederlands, Duits en Frans. Voor overige talen gebruiken ze Engels.
 
 Minimale configuratie:
 

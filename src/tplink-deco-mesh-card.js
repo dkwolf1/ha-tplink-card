@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.7.0
+ * ha-tplink-card v1.8.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -36,204 +36,518 @@
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
   const MESSAGES = {
-    auto: ["Automatic", "Automatisch"],
-    compact: ["Compact", "Compact"],
-    expanded: ["Expanded", "Uitgebreid"],
-    wide: ["Wide", "Breed"],
-    topology: ["Mesh topology", "Mesh-topologie"],
-    activity: ["Network activity", "Netwerkactiviteit"],
-    diagnostics: ["Deco diagnostics", "Deco-diagnostiek"],
-    clients: ["Clients", "Clients"],
-    wifi: ["Wi-Fi networks", "WiFi-netwerken"],
-    api: ["Coordinator / API", "Coordinator / API"],
-    band24: ["2.4 GHz", "2,4 GHz"],
-    unknown: ["Unknown", "Onbekend"],
-    other: ["Unknown/other", "Onbekend/overig"],
+    auto: ["Automatic", "Automatisch", "Automatisch", "Automatique"],
+    compact: ["Compact", "Compact", "Kompakt", "Compact"],
+    expanded: ["Expanded", "Uitgebreid", "Ausführlich", "Détaillé"],
+    wide: ["Wide", "Breed", "Breit", "Large"],
+    topology: [
+      "Mesh topology",
+      "Mesh-topologie",
+      "Mesh-Topologie",
+      "Topologie du réseau maillé",
+    ],
+    activity: [
+      "Network activity",
+      "Netwerkactiviteit",
+      "Netzwerkaktivität",
+      "Activité réseau",
+    ],
+    diagnostics: [
+      "Deco diagnostics",
+      "Deco-diagnostiek",
+      "Deco-Diagnose",
+      "Diagnostic Deco",
+    ],
+    clients: ["Clients", "Clients", "Geräte", "Appareils"],
+    wifi: ["Wi-Fi networks", "WiFi-netwerken", "WLAN-Netze", "Réseaux Wi-Fi"],
+    api: [
+      "Coordinator / API",
+      "Coordinator / API",
+      "Koordinator / API",
+      "Coordinateur / API",
+    ],
+    band24: ["2.4 GHz", "2,4 GHz", "2,4 GHz", "2,4 GHz"],
+    unknown: ["Unknown", "Onbekend", "Unbekannt", "Inconnu"],
+    other: [
+      "Unknown/other",
+      "Onbekend/overig",
+      "Unbekannt / Sonstige",
+      "Inconnu / Autre",
+    ],
     noHistory: [
       "No Recorder history available.",
       "Geen Recorder-historie beschikbaar.",
+      "Im Recorder ist kein Verlauf verfügbar.",
+      "Aucun historique disponible dans Recorder.",
     ],
     chartLabel: [
       "Download and upload history. Use the arrow keys to browse readings.",
       "Historische download en upload. Gebruik de pijltjestoetsen om metingen te bekijken.",
+      "Verlauf für Download und Upload. Mit den Pfeiltasten durch die Messwerte navigieren.",
+      "Historique des débits. Utilisez les flèches du clavier pour parcourir les mesures.",
     ],
-    typeError: ["Card type must be {type}", "type moet {type} zijn"],
+    typeError: [
+      "Card type must be {type}",
+      "type moet {type} zijn",
+      "Der Kartentyp muss {type} sein.",
+      "Le type de carte doit être {type}.",
+    ],
     registryError: [
       "The entity registry is unavailable. Detection is limited to tracker attributes.",
       "Entityregister niet toegankelijk; beperkte detectie via tracker-attributen.",
+      "Das Entitätsregister ist nicht verfügbar. Geräte werden nur anhand der Tracker-Attribute erkannt.",
+      "Le registre des entités est indisponible. La détection repose uniquement sur les attributs des entités de suivi.",
     ],
-    noError: ["No error recorded", "Geen fout geregistreerd"],
+    noError: [
+      "No error recorded",
+      "Geen fout geregistreerd",
+      "Kein Fehler erfasst",
+      "Aucune erreur",
+    ],
     confirmBlock: [
       "Block {name}? This may disconnect the device from the network.",
       "{name} blokkeren? Dit kan de netwerkverbinding verbreken.",
+      "{name} sperren? Dadurch kann die Netzwerkverbindung des Geräts unterbrochen werden.",
+      "Bloquer {name} ? L’appareil risque d’être déconnecté du réseau.",
     ],
-    running: ["Running action…", "Actie uitvoeren…"],
+    running: [
+      "Running action…",
+      "Actie uitvoeren…",
+      "Aktion wird ausgeführt …",
+      "Action en cours…",
+    ],
     blockUnverified: [
       "Deco did not confirm whether the client was blocked or unblocked.",
       "Deco heeft de gevraagde blokkeerstatus niet bevestigd.",
+      "Deco hat nicht bestätigt, ob das Gerät gesperrt oder entsperrt wurde.",
+      "Deco n’a pas confirmé si l’appareil a été bloqué ou débloqué.",
     ],
     blocked: [
       "Deco confirmed the client is blocked.",
       "Deco bevestigt: geblokkeerd.",
+      "Deco hat die Sperre bestätigt.",
+      "Deco a confirmé le blocage de l’appareil.",
     ],
     unblocked: [
       "Deco confirmed the client is unblocked.",
       "Deco bevestigt: gedeblokkeerd.",
+      "Deco hat die Freigabe bestätigt.",
+      "Deco a confirmé le déblocage de l’appareil.",
     ],
-    blockFailed: ["Action failed.", "Actie mislukt."],
+    blockFailed: [
+      "Action failed.",
+      "Actie mislukt.",
+      "Aktion fehlgeschlagen.",
+      "L’action a échoué.",
+    ],
     blockUnknown: [
       "Deco did not confirm the change.",
       "Deco heeft de wijziging niet bevestigd.",
+      "Deco hat die Änderung nicht bestätigt.",
+      "Deco n’a pas confirmé la modification.",
     ],
-    renameTitle: ["Rename client", "Client hernoemen"],
+    renameTitle: [
+      "Rename client",
+      "Client hernoemen",
+      "Gerät umbenennen",
+      "Renommer l’appareil",
+    ],
     renamePrompt: [
       "Enter a new name for {name} on the Deco.",
       "Wijzig de naam van {name} op de Deco.",
+      "Gib einen neuen Namen für {name} auf dem Deco ein.",
+      "Saisissez le nouveau nom de {name} sur le Deco.",
     ],
-    newName: ["New name", "Nieuwe naam"],
-    nameLimit: ["Up to {count} UTF-8 bytes.", "Maximaal {count} UTF-8-bytes."],
-    cancel: ["Cancel", "Annuleren"],
-    confirmRename: ["Confirm rename", "Hernoemen bevestigen"],
+    newName: ["New name", "Nieuwe naam", "Neuer Name", "Nouveau nom"],
+    nameLimit: [
+      "Up to {count} UTF-8 bytes.",
+      "Maximaal {count} UTF-8-bytes.",
+      "Höchstens {count} UTF-8-Bytes.",
+      "{count} octets UTF‑8 maximum.",
+    ],
+    cancel: ["Cancel", "Annuleren", "Abbrechen", "Annuler"],
+    confirmRename: [
+      "Confirm rename",
+      "Hernoemen bevestigen",
+      "Umbenennung bestätigen",
+      "Confirmer le renommage",
+    ],
     invalidName: [
       "Enter a name of 1 to 32 UTF-8 bytes using printable characters.",
       "Gebruik een leesbare naam van 1 tot 32 UTF-8-bytes.",
+      "Gib einen Namen mit 1 bis 32 UTF-8-Bytes ein. Verwende druckbare Zeichen.",
+      "Saisissez un nom de 1 à 32 octets UTF‑8 composé de caractères imprimables.",
     ],
-    renaming: ["Renaming…", "Naam wijzigen…"],
+    renaming: [
+      "Renaming…",
+      "Naam wijzigen…",
+      "Name wird geändert …",
+      "Renommage en cours…",
+    ],
     renameUnverified: [
       "Deco did not confirm the new name.",
       "Deco heeft de nieuwe naam niet bevestigd.",
+      "Deco hat den neuen Namen nicht bestätigt.",
+      "Deco n’a pas confirmé le nouveau nom.",
     ],
     renamed: [
       "Deco confirmed the new name. It will appear on the card when Home Assistant reports it.",
       "Deco heeft de naam bevestigd. De kaart gebruikt de naam uit Home Assistant bij de volgende update.",
+      "Deco hat den neuen Namen bestätigt. Er erscheint auf der Karte, sobald Home Assistant ihn meldet.",
+      "Deco a confirmé le nouveau nom. La carte l’affichera dès que Home Assistant le signalera.",
     ],
-    close: ["Close", "Sluiten"],
-    renameFailed: ["Rename failed.", "Hernoemen mislukt."],
-    noNodes: ["No Deco units found.", "Geen Deco-nodes gevonden."],
-    mainDeco: ["Main Deco", "Hoofd-Deco"],
-    nodeDetails: ["Details for {name}", "Details van {name}"],
-    unit: ["Deco unit", "Deco-unit"],
-    units: ["Deco units", "Deco-units"],
-    satellite: ["satellite", "satelliet"],
-    satellites: ["satellites", "satellieten"],
-    hiddenNodes: ["not shown", "niet getoond"],
+    close: ["Close", "Sluiten", "Schließen", "Fermer"],
+    renameFailed: [
+      "Rename failed.",
+      "Hernoemen mislukt.",
+      "Umbenennung fehlgeschlagen.",
+      "Le renommage a échoué.",
+    ],
+    noNodes: [
+      "No Deco units found.",
+      "Geen Deco-nodes gevonden.",
+      "Keine Deco-Geräte gefunden.",
+      "Aucun module Deco trouvé.",
+    ],
+    mainDeco: ["Main Deco", "Hoofd-Deco", "Haupt-Deco", "Deco principal"],
+    nodeDetails: [
+      "Details for {name}",
+      "Details van {name}",
+      "Details zu {name}",
+      "Détails de {name}",
+    ],
+    unit: ["Deco unit", "Deco-unit", "Deco-Gerät", "module Deco"],
+    units: ["Deco units", "Deco-units", "Deco-Geräte", "modules Deco"],
+    satellite: ["satellite", "satelliet", "Satellit", "satellite"],
+    satellites: ["satellites", "satellieten", "Satelliten", "satellites"],
+    hiddenNodes: ["not shown", "niet getoond", "ausgeblendet", "non affichés"],
     topologyNote: [
       "A logical view of the main Deco and reported satellite connections.",
       "Logisch overzicht op basis van de gemelde hoofd-Deco en satellietkoppelingen. Geen gemeten radiopad of signaalsterkte tussen nodes.",
+      "Übersicht über den Haupt-Deco und die gemeldeten Verbindungen zu den Satelliten.",
+      "Vue logique du Deco principal et des liaisons déclarées vers les satellites.",
     ],
-    detailsClose: ["Close details", "Details sluiten"],
-    memory: ["Memory", "Geheugen"],
-    backhaulSpeed: ["Backhaul speed", "Backhaul snelheid"],
-    backhaulMax: ["Maximum backhaul speed", "Backhaul maximum"],
-    connected: ["Connected clients", "Verbonden clients"],
-    connectedSingle: ["connected client", "verbonden client"],
-    connectedCount: ["connected clients", "verbonden clients"],
-    client: ["client", "client"],
-    clientCount: ["clients", "clients"],
-    fewer: ["Show fewer", "Minder tonen"],
-    more: ["+{count} more", "+{count} meer"],
-    nodeStatus: ["Deco status and diagnostics", "Deco-status en diagnose"],
-    cpuPerNode: ["CPU / RAM per node", "CPU / RAM per node"],
-    main: ["Main", "Hoofd"],
-    block: ["Block", "Blokkeren"],
-    unblock: ["Unblock", "Deblokkeren"],
-    rename: ["Rename", "Hernoemen"],
-    controls: ["Client controls", "Clientbeheer"],
-    clientActivity: ["Client activity", "Clientactiviteit"],
+    detailsClose: [
+      "Close details",
+      "Details sluiten",
+      "Details schließen",
+      "Fermer les détails",
+    ],
+    memory: ["Memory", "Geheugen", "Arbeitsspeicher", "Mémoire"],
+    backhaulSpeed: [
+      "Backhaul speed",
+      "Backhaul snelheid",
+      "Geschwindigkeit der Mesh-Verbindung",
+      "Débit de la liaison inter-Deco",
+    ],
+    backhaulMax: [
+      "Maximum backhaul speed",
+      "Backhaul maximum",
+      "Maximale Geschwindigkeit der Mesh-Verbindung",
+      "Débit maximal de la liaison inter-Deco",
+    ],
+    connected: [
+      "Connected clients",
+      "Verbonden clients",
+      "Verbundene Geräte",
+      "Appareils connectés",
+    ],
+    connectedSingle: [
+      "connected client",
+      "verbonden client",
+      "verbundenes Gerät",
+      "appareil connecté",
+    ],
+    connectedCount: [
+      "connected clients",
+      "verbonden clients",
+      "verbundene Geräte",
+      "appareils connectés",
+    ],
+    client: ["client", "client", "Gerät", "appareil"],
+    clientCount: ["clients", "clients", "Geräte", "appareils"],
+    fewer: ["Show fewer", "Minder tonen", "Weniger anzeigen", "Afficher moins"],
+    more: [
+      "+{count} more",
+      "+{count} meer",
+      "+{count} weitere",
+      "+{count} de plus",
+    ],
+    nodeStatus: [
+      "Deco status and diagnostics",
+      "Deco-status en diagnose",
+      "Deco-Status und Diagnose",
+      "État et diagnostic des Deco",
+    ],
+    cpuPerNode: [
+      "CPU / RAM per node",
+      "CPU / RAM per node",
+      "CPU / RAM je Deco",
+      "CPU / RAM par Deco",
+    ],
+    main: ["Main", "Hoofd", "Hauptgerät", "Principal"],
+    block: ["Block", "Blokkeren", "Sperren", "Bloquer"],
+    unblock: ["Unblock", "Deblokkeren", "Entsperren", "Débloquer"],
+    rename: ["Rename", "Hernoemen", "Umbenennen", "Renommer"],
+    controls: [
+      "Client controls",
+      "Clientbeheer",
+      "Geräteverwaltung",
+      "Gestion des appareils",
+    ],
+    clientActivity: [
+      "Client activity",
+      "Clientactiviteit",
+      "Geräteaktivität",
+      "Activité des appareils",
+    ],
     clientHint: [
       "Clients are grouped by the connection type reported by Deco.",
       "Clientband komt uit het door Deco gemelde verbindingstype.",
+      "Die Geräte sind nach der von Deco gemeldeten Verbindungsart gruppiert.",
+      "Les appareils sont regroupés selon le type de connexion indiqué par Deco.",
     ],
-    primaryNetwork: ["Main network", "Hoofdnetwerk"],
-    guestNetwork: ["Guest network", "Gastnetwerk"],
-    iotNetwork: ["IoT network", "IoT-netwerk"],
-    on: ["On", "Aan"],
-    off: ["Off", "Uit"],
+    primaryNetwork: [
+      "Main network",
+      "Hoofdnetwerk",
+      "Hauptnetz",
+      "Réseau principal",
+    ],
+    guestNetwork: ["Guest network", "Gastnetwerk", "Gastnetz", "Réseau invité"],
+    iotNetwork: ["IoT network", "IoT-netwerk", "IoT-Netz", "Réseau IoT"],
+    on: ["On", "Aan", "Ein", "Activé"],
+    off: ["Off", "Uit", "Aus", "Désactivé"],
     wifiHint: [
       "The integration disables the main Wi-Fi sensor by default. Status is unknown when the sensor is missing.",
       "De hoofd-WiFi-sensor is standaard uitgeschakeld in de integratie. Ontbrekend = onbekend.",
+      "Der Sensor für das Haupt-WLAN ist standardmäßig deaktiviert. Fehlt der Sensor, ist der Status unbekannt.",
+      "Le capteur du réseau Wi-Fi principal est désactivé par défaut. En son absence, l’état du réseau est inconnu.",
     ],
     optionalDiagnostics: [
       "Optional diagnostic entities",
       "Optionele diagnose-entiteiten",
+      "Optionale Diagnose-Entitäten",
+      "Entités de diagnostic facultatives",
     ],
-    decoUpdated: ["Last Deco update", "Deco laatste update"],
-    clientsUpdated: ["Last client update", "Clients laatste update"],
-    decoResponse: ["Deco response time", "Deco responstijd"],
-    clientResponse: ["Client response time", "Client responstijd"],
-    queryMode: ["Query mode", "Querymodus"],
-    perNode: ["Per node", "Per node"],
-    globalFallback: ["All clients (fallback)", "Algemene terugvalmodus"],
-    wireless: ["Wi-Fi", "WiFi"],
-    lastError: ["Last error", "Laatste fout"],
-    active: ["Active", "Actief"],
-    paused: ["Paused", "Gepauzeerd"],
-    hourShort: ["h", "u"],
-    hour: ["hour", "uur"],
-    hours: ["hours", "uur"],
-    historyLoading: ["Loading history…", "Historie laden…"],
+    decoUpdated: [
+      "Last Deco update",
+      "Deco laatste update",
+      "Letzte Deco-Aktualisierung",
+      "Dernière mise à jour des Deco",
+    ],
+    clientsUpdated: [
+      "Last client update",
+      "Clients laatste update",
+      "Letzte Geräteaktualisierung",
+      "Dernière mise à jour des appareils",
+    ],
+    decoResponse: [
+      "Deco response time",
+      "Deco responstijd",
+      "Deco-Antwortzeit",
+      "Temps de réponse des Deco",
+    ],
+    clientResponse: [
+      "Client response time",
+      "Client responstijd",
+      "Antwortzeit der Geräteabfrage",
+      "Temps de réponse (appareils)",
+    ],
+    queryMode: [
+      "Query mode",
+      "Querymodus",
+      "Abfragemodus",
+      "Mode d’interrogation",
+    ],
+    perNode: ["Per node", "Per node", "Je Deco", "Par Deco"],
+    globalFallback: [
+      "All clients (fallback)",
+      "Algemene terugvalmodus",
+      "Alle Geräte (Ausweichmodus)",
+      "Tous les appareils (mode de secours)",
+    ],
+    wireless: ["Wi-Fi", "WiFi", "WLAN", "Wi-Fi"],
+    lastError: [
+      "Last error",
+      "Laatste fout",
+      "Letzter Fehler",
+      "Dernière erreur",
+    ],
+    active: ["Active", "Actief", "Aktiv", "Actif"],
+    paused: ["Paused", "Gepauzeerd", "Pausiert", "En pause"],
+    hourShort: ["h", "u", " h", " h"],
+    hour: ["hour", "uur", "Stunde", "heure"],
+    hours: ["hours", "uur", "Stunden", "heures"],
+    historyLoading: [
+      "Loading history…",
+      "Historie laden…",
+      "Verlauf wird geladen …",
+      "Chargement de l’historique…",
+    ],
     rateHint: [
       "Combined throughput reported by clients.",
       "Dit is de som van door clients gerapporteerde doorvoer; geen internetsnelheidstest.",
+      "Summe der von den Geräten gemeldeten Datenraten.",
+      "Débit cumulé signalé par les appareils.",
     ],
-    visible: ["Visible sections", "Zichtbare onderdelen"],
-    showAll: ["Show all", "Alles tonen"],
+    visible: [
+      "Visible sections",
+      "Zichtbare onderdelen",
+      "Sichtbare Bereiche",
+      "Sections visibles",
+    ],
+    showAll: ["Show all", "Alles tonen", "Alles anzeigen", "Tout afficher"],
     widgetsHint: [
       "Changes apply temporarily. Use the card editor or YAML to save your preferences.",
       "Dit verandert de kaart tijdelijk. Voor blijvende instellingen gebruik je de kaarteditor of YAML.",
+      "Diese Änderungen gelten vorübergehend. Speichere dauerhafte Einstellungen im Karteneditor oder in YAML.",
+      "Ces changements sont temporaires. Pour les conserver, utilisez l’éditeur de carte ou la configuration YAML.",
     ],
     multipleMeshes: [
       "Several TP-Link Deco installations were found. The card shows the first one. Set {setting} to choose your mesh.",
       "Meerdere TP-Link Deco-installaties gevonden. Momenteel wordt de eerste getoond. Stel {setting} in om de juiste mesh te kiezen.",
+      "Mehrere TP-Link-Deco-Installationen gefunden. Die Karte zeigt die erste an. Wähle dein Mesh über {setting} aus.",
+      "Plusieurs installations TP-Link Deco ont été détectées. La carte affiche la première. Renseignez {setting} pour choisir votre réseau maillé.",
     ],
-    noUnits: ["No Deco units found", "Geen Deco-units gevonden"],
+    noUnits: [
+      "No Deco units found",
+      "Geen Deco-units gevonden",
+      "Keine Deco-Geräte gefunden",
+      "Aucun module Deco trouvé",
+    ],
     noUnitsHint: [
       "Check that the TP-Link Deco integration is running and that its device tracker entities are available.",
       "Controleer of ha-tplink-deco actief is en de device_tracker-entiteiten beschikbaar zijn. De kaart gebruikt de Deco-integratie via het entiteitenregister.",
+      "Prüfe, ob die TP-Link-Deco-Integration läuft und die Geräte-Tracker-Entitäten verfügbar sind.",
+      "Vérifiez que l’intégration TP-Link Deco fonctionne et que ses entités de suivi des appareils sont disponibles.",
     ],
-    retry: ["Try again", "Opnieuw proberen"],
-    mainCpu: ["Main Deco CPU", "CPU hoofd-Deco"],
-    response: ["API response time", "API responstijd"],
-    updated: ["Updated {time}", "Bijgewerkt {time}"],
-    noUpdate: ["Last update unknown", "Update onbekend"],
-    subtitle: ["Live mesh network", "Mesh netwerk live"],
-    chooseSections: ["Choose visible sections", "Zichtbare onderdelen kiezen"],
-    pollingOn: ["Polling active", "Polling actief"],
-    pollingOff: ["Polling off", "Polling uit"],
-    title: ["Title", "Titel"],
-    layout: ["Layout", "Formaat"],
-    meshEntry: ["Mesh installation", "Mesh-installatie"],
+    retry: ["Try again", "Opnieuw proberen", "Erneut versuchen", "Réessayer"],
+    mainCpu: [
+      "Main Deco CPU",
+      "CPU hoofd-Deco",
+      "CPU des Haupt-Deco",
+      "CPU du Deco principal",
+    ],
+    response: [
+      "API response time",
+      "API responstijd",
+      "API-Antwortzeit",
+      "Temps de réponse de l’API",
+    ],
+    updated: [
+      "Updated {time}",
+      "Bijgewerkt {time}",
+      "Aktualisiert: {time}",
+      "Mise à jour : {time}",
+    ],
+    noUpdate: [
+      "Last update unknown",
+      "Update onbekend",
+      "Letzte Aktualisierung unbekannt",
+      "Dernière mise à jour inconnue",
+    ],
+    subtitle: [
+      "Live mesh network",
+      "Mesh netwerk live",
+      "Mesh-Netzwerk in Echtzeit",
+      "Réseau maillé en direct",
+    ],
+    chooseSections: [
+      "Choose visible sections",
+      "Zichtbare onderdelen kiezen",
+      "Sichtbare Bereiche auswählen",
+      "Choisir les sections à afficher",
+    ],
+    pollingOn: [
+      "Polling active",
+      "Polling actief",
+      "Abfrage aktiv",
+      "Interrogation active",
+    ],
+    pollingOff: [
+      "Polling off",
+      "Polling uit",
+      "Abfrage aus",
+      "Interrogation désactivée",
+    ],
+    title: ["Title", "Titel", "Titel", "Titre"],
+    layout: ["Layout", "Formaat", "Layout", "Disposition"],
+    meshEntry: [
+      "Mesh installation",
+      "Mesh-installatie",
+      "Mesh-Installation",
+      "Installation Deco",
+    ],
     firstEntry: [
       "Automatic (first installation)",
       "Automatisch (eerste installatie)",
+      "Automatisch (erste Installation)",
+      "Automatique (première installation)",
     ],
-    historyRange: ["History range", "Grafiekvenster"],
+    historyRange: [
+      "History range",
+      "Grafiekvenster",
+      "Verlaufszeitraum",
+      "Période de l’historique",
+    ],
     allowBlock: [
       "Allow blocking and unblocking clients",
       "Clientbeheer toestaan (blokkeren en deblokkeren)",
+      "Sperren und Entsperren von Geräten erlauben",
+      "Autoriser le blocage et le déblocage des appareils",
     ],
     allowRename: [
       "Allow renaming Deco clients",
       "Deco-clients hernoemen toestaan",
+      "Umbenennen von Geräten erlauben",
+      "Autoriser le renommage des appareils",
     ],
-    editorSections: ["Visible sections", "Zichtbare secties"],
+    editorSections: [
+      "Visible sections",
+      "Zichtbare secties",
+      "Sichtbare Bereiche",
+      "Sections visibles",
+    ],
     editorHint: [
       "Some diagnostic entities are disabled by default. Enable them under Settings → Devices & services → TP-Link Deco → Entities. Wi-Fi status depends on the firmware.",
       "De diagnose-entiteiten zijn soms standaard uitgeschakeld. Schakel deze in onder Instellingen → Apparaten en diensten → TP-Link Deco → Entiteiten. WiFi-status verschilt per firmware.",
+      "Einige Diagnose-Entitäten sind standardmäßig deaktiviert. Aktiviere sie unter Einstellungen → Geräte & Dienste → TP-Link Deco → Entitäten. Der WLAN-Status hängt von der Firmware ab.",
+      "Certaines entités de diagnostic sont désactivées par défaut. Activez-les dans Paramètres → Appareils et services → TP-Link Deco → Entités. L’état du Wi-Fi dépend du micrologiciel.",
     ],
     description: [
       "Mesh topology and network diagnostics for TP-Link Deco",
       "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
+      "Mesh-Topologie und Netzwerkdiagnose für TP-Link Deco",
+      "Topologie du réseau maillé et diagnostic réseau pour TP-Link Deco",
     ],
+    online: ["Online", "Online", "Online", "En ligne"],
+    offline: ["Offline", "Offline", "Offline", "Hors ligne"],
+    download: ["Download", "Download", "Download", "Débit descendant"],
+    upload: ["Upload", "Upload", "Upload", "Débit montant"],
+    status: ["Status", "Status", "Status", "État"],
+    model: ["Model", "Model", "Modell", "Modèle"],
+    backhaul: ["Backhaul", "Backhaul", "Mesh-Verbindung", "Liaison inter-Deco"],
+    polling: ["Polling", "Polling", "Abfrage", "Interrogation"],
+    timeouts: [
+      "Timeouts",
+      "Timeouts",
+      "Zeitüberschreitungen",
+      "Délais dépassés",
+    ],
+    widgets: ["Widgets", "Widgets", "Widgets", "Widgets"],
+    trafficUnit: ["kB/s", "kB/s", "kB/s", "ko/s"],
+    percent: ["%", "%", " %", " %"],
   };
-  function makeUi(language, locale) {
+  function makeUi(language, locale, index) {
     const t = Object.fromEntries(
-      Object.entries(MESSAGES).map(([key, labels]) => [
-        key,
-        labels[language === "nl" ? 1 : 0],
-      ]),
+      Object.entries(MESSAGES).map(([key, labels]) => [key, labels[index]]),
     );
     const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+    const plurals = new Intl.PluralRules(locale);
+    const isSingular = (count) =>
+      count != null && plurals.select(count) === "one";
+    const countLabel = (count, singular, plural) =>
+      `${count ?? "—"} ${isSingular(count) ? singular : plural}`;
     const clock = { hour: "2-digit", minute: "2-digit", hourCycle: "h23" };
     const date = { day: "2-digit", month: "2-digit" };
     const clockTime = new Intl.DateTimeFormat(locale, clock);
@@ -262,6 +576,8 @@
       locale,
       t,
       number,
+      isSingular,
+      countLabel,
       clockTime,
       dateAndTime,
       measureTime,
@@ -271,13 +587,24 @@
       timeLabel,
     };
   }
-  const UI = { en: makeUi("en", "en-US"), nl: makeUi("nl", "nl-NL") };
-  const uiFor = (language) =>
-    String(language || "")
+  // The language order matches each entry in MESSAGES.
+  const UI = Object.fromEntries(
+    [
+      ["en", "en-US"],
+      ["nl", "nl-NL"],
+      ["de", "de-DE"],
+      ["fr", "fr-FR"],
+    ].map(([language, locale], index) => [
+      language,
+      makeUi(language, locale, index),
+    ]),
+  );
+  function uiFor(language) {
+    const code = String(language || "")
       .toLowerCase()
-      .split(/[-_]/)[0] === "nl"
-      ? UI.nl
-      : UI.en;
+      .split(/[-_]/)[0];
+    return Object.hasOwn(UI, code) ? UI[code] : UI.en;
+  }
   const hassUi = (hass) =>
     uiFor(
       hass?.language ||
@@ -286,8 +613,6 @@
     );
   const message = (template, values) =>
     template.replace(/\{(\w+)\}/g, (_, key) => values[key]);
-  const countLabel = (count, singular, plural) =>
-    `${count ?? "—"} ${count === 1 ? singular : plural}`;
   const historyLength = (hours, t) =>
     `${hours} ${hours === 1 ? t.hour : t.hours}`;
   const COMPACT_WIDTH = 590;
@@ -454,7 +779,7 @@
       .map((t) => `<span>${esc(tickFormat.format(t))}</span>`)
       .join("");
     return `<div class="chart">
-      <div class="chart-unit">kB/s</div>
+      <div class="chart-unit">${t.trafficUnit}</div>
       <div class="chart-scale"><span>${esc(number.format(ceiling))}</span><span>${esc(number.format(ceiling / 2))}</span><span>0</span></div>
       <div class="chart-plot" tabindex="0" role="group" aria-label="${t.chartLabel}" aria-describedby="${PREFIX}-readout">
         <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
@@ -987,7 +1312,7 @@
       this._updateChartReadout(plot);
     }
     _updateChartReadout(plot) {
-      const { chartNumber, measureTime } = this._ui;
+      const { t, chartNumber, measureTime } = this._ui;
       const cursor = plot.querySelector(".chart-cursor");
       const readout = plot.closest(".chart").querySelector(".chart-readout");
       const { down, up, start, end } = this._history;
@@ -1003,11 +1328,11 @@
       if (closest)
         cursor.style.left = `${Math.max(0, Math.min(1, (closest.t - start) / (end - start))) * 100}%`;
       for (const [series, label, sample] of [
-        ["down", "Download", download],
-        ["up", "Upload", upload],
+        ["down", t.download, download],
+        ["up", t.upload, upload],
       ]) {
         readout.querySelector(`[data-series="${series}"]`).textContent = sample
-          ? `${label} ${chartNumber.format(sample.v)} kB/s · ${measureTime.format(sample.t)}`
+          ? `${label} ${chartNumber.format(sample.v)} ${t.trafficUnit} · ${measureTime.format(sample.t)}`
           : closest
             ? `${label} —`
             : "";
@@ -1297,15 +1622,15 @@
         this._queueRender();
       }
     }
-    _statusPill(value, yes = "Online", no = "Offline") {
+    _statusPill(value, yes = this._ui.t.online, no = this._ui.t.offline) {
       const { t } = this._ui;
       return `<span class="status ${value === true ? "ok" : value === false ? "bad" : "unknown"}"><i></i>${esc(value === true ? yes : value === false ? no : t.unknown)}</span>`;
     }
     _metric(label, value, icon) {
-      return `<div class="metric"><span class="metric-icon">${ico(icon, 22)}</span><div><small>${esc(label)}</small><strong>${esc(value)}</strong></div></div>`;
+      return `<div class="metric"><span class="metric-icon">${ico(icon, 22)}</span><div><small title="${esc(label)}">${esc(label)}</small><strong title="${esc(value)}">${esc(value)}</strong></div></div>`;
     }
     _topology(d) {
-      const { t } = this._ui;
+      const { t, countLabel } = this._ui;
       const nodes = d.nodes,
         master = d.master;
       if (!nodes.length) return `<div class="empty-small">${t.noNodes}</div>`;
@@ -1373,11 +1698,11 @@
             `<span class="client-chip">${ico("cellphone-link", 14)}${esc(c.name)}</span>`,
         )
         .join("");
-      return `<section class="detail-panel"><div class="section-head"><h3>${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="${t.detailsClose}">✕</button></div><div class="detail-grid">${line("Status", n.online === true ? "Online" : n.online === false ? "Offline" : "—")}${line("Backhaul", n.master ? t.mainDeco : n.connection)}${line("CPU", field(n.cpu, "%"))}${line(t.memory, field(n.memory, "%"))}${line(t.backhaulSpeed, field(n.backhaulSpeed, " Mbit/s"))}${line(t.backhaulMax, field(n.backhaulMax, " Mbit/s"))}${line("Model", n.model || "—")}${line(t.connected, n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? t.fewer : message(t.more, { count: remaining })}</button>` : ""}</div>` : ""}</section>`;
+      return `<section class="detail-panel"><div class="section-head"><h3>${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="${t.detailsClose}">✕</button></div><div class="detail-grid">${line(t.status, n.online === true ? t.online : n.online === false ? t.offline : "—")}${line(t.backhaul, n.master ? t.mainDeco : n.connection)}${line("CPU", field(n.cpu, t.percent))}${line(t.memory, field(n.memory, t.percent))}${line(t.backhaulSpeed, field(n.backhaulSpeed, " Mbit/s"))}${line(t.backhaulMax, field(n.backhaulMax, " Mbit/s"))}${line(t.model, n.model || "—")}${line(t.connected, n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? t.fewer : message(t.more, { count: remaining })}</button>` : ""}</div>` : ""}</section>`;
     }
     _nodesPanel(d) {
       const { t, field } = this._ui;
-      return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} ${t.nodeStatus}</h3><small>${t.cpuPerNode}</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>Clients</span><span>CPU</span><span>RAM</span><span>Backhaul</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, "%")}</span><span>${field(n.memory, "%")}</span><span>${esc(n.master ? t.main : n.connection)}</span></button>`).join("")}</div></section>`;
+      return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} ${t.nodeStatus}</h3><small>${t.cpuPerNode}</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>${t.clients}</span><span>CPU</span><span>RAM</span><span>${t.backhaul}</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, t.percent)}</span><span>${field(n.memory, t.percent)}</span><span>${esc(n.master ? t.main : n.connection)}</span></button>`).join("")}</div></section>`;
     }
     _clientControlsPanel(targets) {
       const { t, locale } = this._ui;
@@ -1409,7 +1734,7 @@
       return `<section class="panel client-controls"><div class="section-head"><h3>${ico("lock", 17)} ${t.controls}</h3></div><ul class="client-control-list">${rows}</ul></section>`;
     }
     _clientsPanel(d) {
-      const { t } = this._ui;
+      const { t, isSingular } = this._ui;
       const active = d.clients.filter((c) => c.online);
       const groups = [
         [t.band24, "wifi"],
@@ -1428,7 +1753,7 @@
             `<div>${ico(icon, 16)} ${label} <strong>${d.clients.length ? counts.get(label) : "—"}</strong></div>`,
         )
         .join("");
-      return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} ${t.clientActivity}</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>${d.clientCount === 1 ? t.connectedSingle : t.connectedCount}</span></div><div class="bands">${bands}</div><small class="hint">${t.clientHint}</small></section>`;
+      return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} ${t.clientActivity}</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>${isSingular(d.clientCount) ? t.connectedSingle : t.connectedCount}</span></div><div class="bands">${bands}</div><small class="hint">${t.clientHint}</small></section>`;
     }
     _wifiPanel(d) {
       const { t } = this._ui;
@@ -1463,7 +1788,7 @@
         : valid(d.queryMode)
           ? d.queryMode
           : "—";
-      return `<section class="panel api-panel"><div class="section-head"><h3>${ico("code-braces", 19)} ${t.api}</h3><small>${t.optionalDiagnostics}</small></div><div class="api-grid"><div><small>${t.decoUpdated}</small><strong>${esc(timeLabel(d.decoUpdate))}</strong></div><div><small>${t.clientsUpdated}</small><strong>${esc(timeLabel(d.clientUpdate))}</strong></div><div><small>${t.decoResponse}</small><strong>${esc(duration(d.response))}</strong></div><div><small>${t.clientResponse}</small><strong>${esc(duration(d.clientResponse))}</strong></div><div><small>${t.queryMode}</small><strong>${esc(mode)}</strong></div><div><small>Timeouts</small><strong>${esc(d.timeouts == null ? "—" : d.timeouts)}</strong></div><div class="error-text"><small>${t.lastError}</small><strong title="${esc(err)}">${esc(err)}</strong></div><div><small>Polling</small><strong>${d.polling === true ? t.active : d.polling === false ? t.paused : "—"}</strong></div></div></section>`;
+      return `<section class="panel api-panel"><div class="section-head"><h3>${ico("code-braces", 19)} ${t.api}</h3><small>${t.optionalDiagnostics}</small></div><div class="api-grid"><div><small>${t.decoUpdated}</small><strong>${esc(timeLabel(d.decoUpdate))}</strong></div><div><small>${t.clientsUpdated}</small><strong>${esc(timeLabel(d.clientUpdate))}</strong></div><div><small>${t.decoResponse}</small><strong>${esc(duration(d.response))}</strong></div><div><small>${t.clientResponse}</small><strong>${esc(duration(d.clientResponse))}</strong></div><div><small>${t.queryMode}</small><strong>${esc(mode)}</strong></div><div><small>${t.timeouts}</small><strong>${esc(d.timeouts == null ? "—" : d.timeouts)}</strong></div><div class="error-text"><small>${t.lastError}</small><strong title="${esc(err)}">${esc(err)}</strong></div><div><small>${t.polling}</small><strong>${d.polling === true ? t.active : d.polling === false ? t.paused : "—"}</strong></div></div></section>`;
     }
     _trafficPanel(d) {
       const { t, field } = this._ui;
@@ -1480,11 +1805,11 @@
       const history = showHistory
         ? `
         ${loading ? `<div class="empty-small">${t.historyLoading}</div>` : trendSvg(this._history, this._ui)}
-        <div class="legend"><span class="teal-dot"></span> Download <span class="blue-dot"></span> Upload <span class="legend-note">Recorder · ${historyLength(hours, t)}</span></div>`
+        <div class="legend"><span class="teal-dot"></span> ${t.download} <span class="blue-dot"></span> ${t.upload} <span class="legend-note">Recorder · ${historyLength(hours, t)}</span></div>`
         : "";
       return `<section class="panel traffic-panel">
         <div class="section-head"><h3>${ico("chart-areaspline", 19)} ${t.activity}</h3>${controls}</div>
-        <div class="traffic-now"><span>${ico("arrow-down-bold", 15)} ${esc(field(d.down, " kB/s"))}</span><span>${ico("arrow-up-bold", 15)} ${esc(field(d.up, " kB/s"))}</span></div>
+        <div class="traffic-now"><span>${ico("arrow-down-bold", 15)} ${esc(field(d.down, ` ${t.trafficUnit}`))}</span><span>${ico("arrow-up-bold", 15)} ${esc(field(d.up, ` ${t.trafficUnit}`))}</span></div>
         ${history}
         <small class="hint">${t.rateHint}</small>
       </section>`;
@@ -1530,9 +1855,9 @@
         const topology = section("topology", this._topology(d));
         const details = this._nodeDetails(d);
         const health = `<div class="health-strip">
-          ${this._metric(t.mainCpu, field(d.master?.cpu, "%"), "chip")}
-          ${this._metric(t.memory, field(d.master?.memory, "%"), "memory")}
-          ${this._metric("Backhaul", field(d.master?.backhaulSpeed, " Mbit/s"), "lan-connect")}
+          ${this._metric(t.mainCpu, field(d.master?.cpu, t.percent), "chip")}
+          ${this._metric(t.memory, field(d.master?.memory, t.percent), "memory")}
+          ${this._metric(t.backhaul, field(d.master?.backhaulSpeed, " Mbit/s"), "lan-connect")}
           ${this._metric(t.response, duration(d.response), "timer-outline")}
         </div>`;
         const traffic = section("traffic", this._trafficPanel(d));
@@ -1558,7 +1883,7 @@
       const updateLabel = Number.isFinite(lastUpdate)
         ? message(t.updated, { time: timeLabel(lastUpdate) })
         : t.noUpdate;
-      const markup = `<style>${STYLE}</style><ha-card lang="${this._ui.language}" class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || CARD_NAME)}</h2><p>${t.subtitle}</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="${t.chooseSections}">${ico("tune-variant", 18)}<span class="action-label"> Widgets</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? "Online" : d.internet === false ? "Offline" : t.unknown, "earth")}${this._metric(t.connected, d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric("Download", field(d.down, " kB/s"), "arrow-down-bold")}${this._metric("Upload", field(d.up, " kB/s"), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, t.pollingOn, t.pollingOff)}</span><span>${esc(CARD_NAME)}</span></div></ha-card>`;
+      const markup = `<style>${STYLE}</style><ha-card lang="${this._ui.language}" class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || CARD_NAME)}</h2><p>${t.subtitle}</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="${t.chooseSections}">${ico("tune-variant", 18)}<span class="action-label"> ${t.widgets}</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? t.online : d.internet === false ? t.offline : t.unknown, "earth")}${this._metric(t.connected, d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric(t.download, field(d.down, ` ${t.trafficUnit}`), "arrow-down-bold")}${this._metric(t.upload, field(d.up, ` ${t.trafficUnit}`), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, t.pollingOn, t.pollingOff)}</span><span>${esc(CARD_NAME)}</span></div></ha-card>`;
       if (this._lastMarkup !== markup) {
         this._lastMarkup = markup;
         const activeElement = this.shadowRoot.activeElement;
@@ -1613,6 +1938,8 @@
     .node-table-head,.node-table-row{display:grid;grid-template-columns:minmax(90px,1.4fr) repeat(3,minmax(40px,.6fr)) minmax(75px,.9fr);align-items:center;gap:5px}.node-table-head{color:#7eaab4;font-size:10px;margin-bottom:8px}.node-table-row{width:100%;color:#e4f3fa;font-size:11px;background:transparent;border:0;border-top:1px solid #29808c20;text-align:left;padding:9px 0}.node-table-row:hover{background:#ffffff06}.name-cell{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.node-table-row .dot{width:7px;height:7px;flex:none}.clients-big{font-size:30px;font-weight:750;color:#fff}.clients-big span{font-size:11px;font-weight:400;color:#a9c5cc}.bands{margin-top:13px;display:grid;gap:10px}.bands div{display:flex;align-items:center;gap:7px;font-size:12px}.bands ha-icon{color:#53eccb}.bands strong{margin-left:auto}.api-grid,.detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.api-grid>div,.detail-grid>div{min-width:0;padding-right:10px;border-right:1px solid #4a8e993d}.api-grid small,.detail-grid small{display:block;color:#91bbc4;font-size:10px}.api-grid strong,.detail-grid b{display:block;color:#fff;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:5px}.error-text{grid-column:span 1}.detail-panel{margin:0 0 13px}.detail-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.client-chips{flex-wrap:wrap;margin-top:14px}.client-chip{display:flex;align-items:center;gap:4px;background:#10404a;color:#afe8e7;padding:5px 7px;border-radius:7px;font-size:10px}
     .footer{justify-content:space-between;margin-top:12px;padding:10px 12px;border:1px solid #4b9ab53b;border-radius:12px;background:#0c344267;color:#aac4cf;font-size:11px;gap:10px;flex-wrap:wrap}.footer span{display:flex;align-items:center;gap:5px}.footer .status{font-size:11px}.footer ha-icon{color:#5ee6d5}
     .notice{background:#634c122a;border:1px solid #ffdb986b;padding:10px;border-radius:9px;font-size:12px;color:#ffdeb5;margin-bottom:12px}.notice code{font-family:monospace}.no-data{display:flex;align-items:center;flex-direction:column;text-align:center;gap:10px;padding:45px 18px;color:#a6cad2}.no-data>b{color:#fff}.no-data p{max-width:460px;line-height:1.6}.no-data button{border:1px solid #20cbb7;background:#0b5459;color:#e9fffd;border-radius:9px;padding:9px 14px}.widget-picker{margin-bottom:12px}.choices{display:flex;flex-wrap:wrap;gap:7px}.choice{border:1px solid #43838b;color:#9dc6cb;background:#071f2d;border-radius:8px;padding:6px 9px;font-size:11px}.choice.chosen{border-color:#2fe1be;color:#6ff4d6;background:#11534755}
+    .frame:is([lang="de"],[lang="fr"]) .metric small{white-space:normal;overflow-wrap:anywhere}
+    .compact[lang="fr"] :is(.node-table-head,.node-table-row){grid-template-columns:minmax(78px,1.3fr) minmax(46px,.7fr) repeat(2,minmax(37px,.6fr)) minmax(66px,.9fr)}
     .compact{padding:13px;border-radius:16px}.compact .summary{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .header-actions .action-label{display:none}.compact .update-mark{max-width:88px;font-size:10px}.compact .head-title h2{font-size:18px}.compact .metric{min-height:63px}.compact .health-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .lower-grid{grid-template-columns:1fr}.compact .mesh-canvas{height:280px}.compact .node{width:103px;min-height:81px;padding:6px;gap:2px}.compact .node.root{width:114px;min-height:91px}.compact .node b,.compact .node.root b{font-size:11px}.compact .node-info{flex-wrap:wrap;gap:0}.compact .node-info small{display:none}.compact .cylinder,.compact .node.root .cylinder{width:26px;height:24px;margin-top:-9px}.compact .node-type{font-size:9px}.compact .topology-meta{font-size:10px}.compact .api-grid,.compact .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compact .topology-note{font-size:9px}.compact .panel{padding:12px}.compact .chart-svg{height:110px}
     .client-control-list{list-style:none;margin:0;padding:0;max-height:18rem;overflow:auto}
     .client-control-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 2px;border-top:1px solid #29808c40;font-size:11px}
@@ -1758,5 +2085,5 @@
       },
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.7.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v1.8.0 `, "background:#008a80;color:white;");
 })();

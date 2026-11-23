@@ -95,6 +95,169 @@ const renameButton = (page, name = "Test phone") =>
 const renameDialog = (page) => card(page).getByRole("dialog");
 const renameConfig = { client_rename: true };
 
+for (const labels of [
+  {
+    locale: "de-DE",
+    code: "de",
+    activity: "Netzwerkaktivität",
+    online: "Online",
+    historyReadout: /Download .* kB\/s/,
+    layout: "Layout",
+    historyRange: "Verlaufszeitraum",
+    allowRename: "Umbenennen von Geräten erlauben",
+    rename: "Umbenennen",
+    title: "Gerät umbenennen",
+    name: "Neuer Name",
+    exampleName: "Telefon im Büro",
+    confirm: "Umbenennung bestätigen",
+    validation: "1 bis 32 UTF-8-Bytes",
+    success: "Deco hat den neuen Namen bestätigt.",
+    failure: "Umbenennung fehlgeschlagen.",
+    close: "Schließen",
+    block: "Sperren",
+    blockPrompt: "Test phone sperren?",
+    blocked: "Deco hat die Sperre bestätigt.",
+  },
+  {
+    locale: "fr-FR",
+    code: "fr",
+    activity: "Activité réseau",
+    online: "En ligne",
+    historyReadout: /Débit descendant .* ko\/s/,
+    layout: "Disposition",
+    historyRange: "Période de l’historique",
+    allowRename: "Autoriser le renommage des appareils",
+    rename: "Renommer",
+    title: "Renommer l’appareil",
+    name: "Nouveau nom",
+    exampleName: "Téléphone du bureau",
+    confirm: "Confirmer le renommage",
+    validation: "1 à 32 octets UTF‑8",
+    success: "Deco a confirmé le nouveau nom.",
+    failure: "Le renommage a échoué.",
+    close: "Fermer",
+    block: "Bloquer",
+    blockPrompt: "Bloquer Test phone ?",
+    blocked: "Deco a confirmé le blocage de l’appareil.",
+  },
+]) {
+  test(`renders ${labels.locale} dashboard, history, editor and client actions`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/demo/");
+    await expect(card(page).locator(".chart-plot")).toBeVisible();
+    await card(page).evaluate((element, language) => {
+      element.hass = { ...element._hass, language };
+    }, labels.locale);
+    const frame = card(page).locator("ha-card");
+    await expect(frame).toHaveAttribute("lang", labels.code);
+    await expect(frame).toHaveClass("frame wide");
+    await expect(
+      card(page).getByRole("heading", { name: labels.activity }),
+    ).toBeVisible();
+    await expect(card(page).locator(".internet-node .status")).toHaveText(
+      labels.online,
+    );
+    const plot = card(page).locator(".chart-plot");
+    await plot.press("ArrowRight");
+    await expect(card(page).locator(".chart-readout")).toContainText(
+      labels.historyReadout,
+    );
+    if (process.env.REVIEW_TRANSLATIONS === "1") {
+      await frame.screenshot({
+        path: testInfo.outputPath("dashboard.png"),
+        animations: "disabled",
+      });
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(frame).toHaveClass("frame compact");
+    const compact = await frame.boundingBox();
+    expect(compact.x + compact.width).toBeLessThanOrEqual(390);
+    if (process.env.REVIEW_TRANSLATIONS === "1") {
+      await frame.screenshot({
+        path: testInfo.outputPath("compact.png"),
+        animations: "disabled",
+      });
+    }
+
+    await setUp(page, {
+      language: labels.locale,
+      phoneState: "home",
+      renameService: true,
+      config: { ...renameConfig, client_controls: true },
+    });
+    await card(page).evaluate((element) => {
+      const editor = element.constructor.getConfigElement();
+      editor.setConfig({ type: "custom:tplink-deco-mesh-card" });
+      editor.hass = globalThis.decoActions.hass;
+      element.ownerDocument.body.append(editor);
+    });
+    const editor = page.locator("tplink-deco-mesh-card-editor");
+    await expect(editor.getByLabel(labels.layout)).toHaveValue("auto");
+    await expect(editor.getByLabel(labels.historyRange)).toHaveValue("1");
+    await expect(
+      editor.getByRole("checkbox", { name: labels.allowRename }),
+    ).toBeVisible();
+
+    await panel(page)
+      .getByRole("button", {
+        name: `${labels.rename}: Test phone`,
+        exact: true,
+      })
+      .click();
+    const dialog = renameDialog(page);
+    await expect(dialog).toHaveAccessibleName(labels.title);
+    await expect(dialog).toHaveAttribute("lang", labels.code);
+    const input = dialog.getByRole("textbox", { name: labels.name });
+    const confirm = dialog.getByRole("button", { name: labels.confirm });
+    await input.fill("é".repeat(17));
+    await confirm.click();
+    await expect(dialog.getByRole("alert")).toContainText(labels.validation);
+    await input.fill(labels.exampleName);
+    if (process.env.REVIEW_TRANSLATIONS === "1") {
+      await dialog.screenshot({
+        path: testInfo.outputPath("rename.png"),
+        animations: "disabled",
+      });
+    }
+    await confirm.click();
+    await expect(dialog.getByRole("status")).toContainText(labels.success);
+    await dialog.getByRole("button", { name: labels.close }).click();
+
+    const confirmation = page.waitForEvent("dialog").then(async (prompt) => {
+      expect(prompt.message()).toContain(labels.blockPrompt);
+      await prompt.accept();
+    });
+    await panel(page)
+      .getByRole("button", { name: `${labels.block}: Test phone`, exact: true })
+      .click();
+    await confirmation;
+    await expect(panel(page).getByRole("status")).toHaveText(labels.blocked);
+    expect((await recordedCalls(page)).map((call) => call.name)).toEqual([
+      "rename_client",
+      "set_client_blocked",
+    ]);
+    await page.evaluate(() => {
+      globalThis.decoActions.hass.callService = async () => {
+        throw new Error("Test integration error");
+      };
+    });
+    await panel(page)
+      .getByRole("button", {
+        name: `${labels.rename}: Test phone`,
+        exact: true,
+      })
+      .click();
+    await input.fill("Test phone");
+    await confirm.click();
+    await expect(dialog.getByRole("alert")).toHaveText(
+      `${labels.failure} Test integration error`,
+    );
+  });
+}
+
 test("localizes the editor and client actions using the Home Assistant language @screenshots", async ({
   page,
 }) => {

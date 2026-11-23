@@ -278,6 +278,31 @@ async function tick() {
     ),
   );
   assert.equal(unavailable._data().down, null);
+
+  const languageCard = new Card();
+  languageCard._hass = { language: "en" };
+  const english = languageCard._ui.t;
+  const placeholders = (message) =>
+    [...message.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
+  for (const [profile, expected] of [
+    ["nl-BE", "nl"],
+    ["de-AT", "de"],
+    ["fr-CA", "fr"],
+    ["es", "en"],
+  ]) {
+    languageCard._hass = { locale: { language: profile } };
+    const { language, t } = languageCard._ui;
+    assert.equal(language, expected);
+    for (const [key, label] of Object.entries(english)) {
+      assert.equal(typeof t[key], "string", `${profile}: ${key}`);
+      assert.ok(t[key].trim(), `${profile}: empty ${key}`);
+      assert.deepEqual(
+        placeholders(t[key]),
+        placeholders(label),
+        `${profile}: ${key}`,
+      );
+    }
+  }
   console.log(
     "PASS: registry isolation, node health, actual rates, API, WiFi, history, XSS, multi-entry, editor, label refresh, missing readings, manual source",
   );

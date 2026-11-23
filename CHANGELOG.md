@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+- Add German and French throughout the dashboard card, editor, and client controls, including confirmations, errors, and accessibility labels.
+- Choose the language from your Home Assistant profile. English and Dutch remain available, and English is the fallback for other languages.
+- Format dates, numbers, and units for each supported language. Long German and French labels wrap on compact cards.
+
 ## 1.7.0
 
 - Add English throughout the dashboard card, editor, client controls, and accessibility labels.
