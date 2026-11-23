@@ -53,6 +53,23 @@ Add **ha-tplink-card** through the card picker and leave **Formaat** on **Automa
 
 Home Assistant sets the space available to each card. To fill a whole tab, place this card alone on a **Panel (1 card)** tab. On an existing card, a saved size override in **Layout** still applies. Select **Use recommended size** to restore the new default. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/) · [Resizing a card](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
 
+#### Widen an existing Sections dashboard
+
+If the card fills one narrow section and leaves space next to it, edit the **view YAML**. Set `max_columns: 3` at the top level. Under `sections:`, update the section that already contains the card to match the structure below. Keep your other sections, cards, and settings.
+
+```yaml
+- type: grid
+  column_span: 3
+  cards:
+    - type: custom:tplink-deco-mesh-card
+      view: wide
+      grid_options:
+        columns: full
+        rows: auto
+```
+
+`column_span: 3` lets that section span three columns when the screen has room. `columns: full` makes the card fill that section. If the card already uses `view: wide`, the key change is adding the section span.
+
 ### Updates and troubleshooting
 
 - **Update** via Marketplace or replace the JS file and change the version in the resource URL. Reload the browser afterward.
@@ -110,6 +127,23 @@ Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat het grafiekvenster, d
 Voeg **ha-tplink-card** toe via de kaartkiezer en laat **Formaat** op **Automatisch** staan. Op een dashboard met secties vult de kaart standaard de hele sectie en past de hoogte zich aan de inhoud aan. Vanaf 800 px kaartbreedte staan topologie en diagnose naast elkaar. Bij minder ruimte staan ze onder elkaar.
 
 Home Assistant bepaalt hoeveel ruimte elke kaart krijgt. Wil je dat de kaart een heel tabblad vult, plaats haar dan als enige kaart op een tabblad van het type **Paneel (1 kaart)**. Bij een bestaande kaart blijft een eerder ingestelde grootte onder **Indeling** gelden. Kies **Gebruik aanbevolen grootte** om de nieuwe standaard te gebruiken. [Paneelweergave](https://www.home-assistant.io/dashboards/panel/) · [Kaartgrootte aanpassen](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
+
+#### Maak de kaart breder op een bestaand tabblad met secties
+
+Vult de kaart één smalle sectie en blijft de ruimte ernaast leeg? Open de **YAML van het tabblad** en zet `max_columns: 3` op het hoogste niveau. Pas onder `sections:` de sectie met de kaart aan volgens het blok hieronder. Behoud je andere secties, kaarten en instellingen.
+
+```yaml
+- type: grid
+  column_span: 3
+  cards:
+    - type: custom:tplink-deco-mesh-card
+      view: wide
+      grid_options:
+        columns: full
+        rows: auto
+```
+
+Met `column_span: 3` gebruikt die sectie drie kolommen zodra het scherm daar ruimte voor heeft. Met `columns: full` vult de kaart die sectie. Staat de kaart al op `view: wide`, dan is de ontbrekende sectiebreedte de instelling die je moet aanpassen.
 
 ### Updates en problemen oplossen
 
