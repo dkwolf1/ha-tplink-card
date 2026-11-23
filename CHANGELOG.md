@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+
+- Add English throughout the dashboard card, editor, client controls, and accessibility labels.
+- Follow the Home Assistant profile language. Use Dutch for Dutch profiles and English for other languages.
+- Localize chart labels, dates, and number formatting. Existing card settings carry over.
+
 ## 1.6.0
 
 Home Assistant administrators can now rename connected clients directly on the Deco from the card.

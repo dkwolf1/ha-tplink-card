@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.6.0
+ * ha-tplink-card v1.7.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -35,34 +35,264 @@
   const CLIENT_NAME_MAX_BYTES = 32;
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
-  const measureTime = new Intl.DateTimeFormat("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const clockTime = new Intl.DateTimeFormat("nl-NL", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const dateAndTime = new Intl.DateTimeFormat("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const chartNumber = new Intl.NumberFormat("nl-NL", {
-    maximumFractionDigits: 10,
-  });
+  const MESSAGES = {
+    auto: ["Automatic", "Automatisch"],
+    compact: ["Compact", "Compact"],
+    expanded: ["Expanded", "Uitgebreid"],
+    wide: ["Wide", "Breed"],
+    topology: ["Mesh topology", "Mesh-topologie"],
+    activity: ["Network activity", "Netwerkactiviteit"],
+    diagnostics: ["Deco diagnostics", "Deco-diagnostiek"],
+    clients: ["Clients", "Clients"],
+    wifi: ["Wi-Fi networks", "WiFi-netwerken"],
+    api: ["Coordinator / API", "Coordinator / API"],
+    band24: ["2.4 GHz", "2,4 GHz"],
+    unknown: ["Unknown", "Onbekend"],
+    other: ["Unknown/other", "Onbekend/overig"],
+    noHistory: [
+      "No Recorder history available.",
+      "Geen Recorder-historie beschikbaar.",
+    ],
+    chartLabel: [
+      "Download and upload history. Use the arrow keys to browse readings.",
+      "Historische download en upload. Gebruik de pijltjestoetsen om metingen te bekijken.",
+    ],
+    typeError: ["Card type must be {type}", "type moet {type} zijn"],
+    registryError: [
+      "The entity registry is unavailable. Detection is limited to tracker attributes.",
+      "Entityregister niet toegankelijk; beperkte detectie via tracker-attributen.",
+    ],
+    noError: ["No error recorded", "Geen fout geregistreerd"],
+    confirmBlock: [
+      "Block {name}? This may disconnect the device from the network.",
+      "{name} blokkeren? Dit kan de netwerkverbinding verbreken.",
+    ],
+    running: ["Running action…", "Actie uitvoeren…"],
+    blockUnverified: [
+      "Deco did not confirm whether the client was blocked or unblocked.",
+      "Deco heeft de gevraagde blokkeerstatus niet bevestigd.",
+    ],
+    blocked: [
+      "Deco confirmed the client is blocked.",
+      "Deco bevestigt: geblokkeerd.",
+    ],
+    unblocked: [
+      "Deco confirmed the client is unblocked.",
+      "Deco bevestigt: gedeblokkeerd.",
+    ],
+    blockFailed: ["Action failed.", "Actie mislukt."],
+    blockUnknown: [
+      "Deco did not confirm the change.",
+      "Deco heeft de wijziging niet bevestigd.",
+    ],
+    renameTitle: ["Rename client", "Client hernoemen"],
+    renamePrompt: [
+      "Enter a new name for {name} on the Deco.",
+      "Wijzig de naam van {name} op de Deco.",
+    ],
+    newName: ["New name", "Nieuwe naam"],
+    nameLimit: ["Up to {count} UTF-8 bytes.", "Maximaal {count} UTF-8-bytes."],
+    cancel: ["Cancel", "Annuleren"],
+    confirmRename: ["Confirm rename", "Hernoemen bevestigen"],
+    invalidName: [
+      "Enter a name of 1 to 32 UTF-8 bytes using printable characters.",
+      "Gebruik een leesbare naam van 1 tot 32 UTF-8-bytes.",
+    ],
+    renaming: ["Renaming…", "Naam wijzigen…"],
+    renameUnverified: [
+      "Deco did not confirm the new name.",
+      "Deco heeft de nieuwe naam niet bevestigd.",
+    ],
+    renamed: [
+      "Deco confirmed the new name. It will appear on the card when Home Assistant reports it.",
+      "Deco heeft de naam bevestigd. De kaart gebruikt de naam uit Home Assistant bij de volgende update.",
+    ],
+    close: ["Close", "Sluiten"],
+    renameFailed: ["Rename failed.", "Hernoemen mislukt."],
+    noNodes: ["No Deco units found.", "Geen Deco-nodes gevonden."],
+    mainDeco: ["Main Deco", "Hoofd-Deco"],
+    nodeDetails: ["Details for {name}", "Details van {name}"],
+    unit: ["Deco unit", "Deco-unit"],
+    units: ["Deco units", "Deco-units"],
+    satellite: ["satellite", "satelliet"],
+    satellites: ["satellites", "satellieten"],
+    hiddenNodes: ["not shown", "niet getoond"],
+    topologyNote: [
+      "A logical view of the main Deco and reported satellite connections.",
+      "Logisch overzicht op basis van de gemelde hoofd-Deco en satellietkoppelingen. Geen gemeten radiopad of signaalsterkte tussen nodes.",
+    ],
+    detailsClose: ["Close details", "Details sluiten"],
+    memory: ["Memory", "Geheugen"],
+    backhaulSpeed: ["Backhaul speed", "Backhaul snelheid"],
+    backhaulMax: ["Maximum backhaul speed", "Backhaul maximum"],
+    connected: ["Connected clients", "Verbonden clients"],
+    connectedSingle: ["connected client", "verbonden client"],
+    connectedCount: ["connected clients", "verbonden clients"],
+    client: ["client", "client"],
+    clientCount: ["clients", "clients"],
+    fewer: ["Show fewer", "Minder tonen"],
+    more: ["+{count} more", "+{count} meer"],
+    nodeStatus: ["Deco status and diagnostics", "Deco-status en diagnose"],
+    cpuPerNode: ["CPU / RAM per node", "CPU / RAM per node"],
+    main: ["Main", "Hoofd"],
+    block: ["Block", "Blokkeren"],
+    unblock: ["Unblock", "Deblokkeren"],
+    rename: ["Rename", "Hernoemen"],
+    controls: ["Client controls", "Clientbeheer"],
+    clientActivity: ["Client activity", "Clientactiviteit"],
+    clientHint: [
+      "Clients are grouped by the connection type reported by Deco.",
+      "Clientband komt uit het door Deco gemelde verbindingstype.",
+    ],
+    primaryNetwork: ["Main network", "Hoofdnetwerk"],
+    guestNetwork: ["Guest network", "Gastnetwerk"],
+    iotNetwork: ["IoT network", "IoT-netwerk"],
+    on: ["On", "Aan"],
+    off: ["Off", "Uit"],
+    wifiHint: [
+      "The integration disables the main Wi-Fi sensor by default. Status is unknown when the sensor is missing.",
+      "De hoofd-WiFi-sensor is standaard uitgeschakeld in de integratie. Ontbrekend = onbekend.",
+    ],
+    optionalDiagnostics: [
+      "Optional diagnostic entities",
+      "Optionele diagnose-entiteiten",
+    ],
+    decoUpdated: ["Last Deco update", "Deco laatste update"],
+    clientsUpdated: ["Last client update", "Clients laatste update"],
+    decoResponse: ["Deco response time", "Deco responstijd"],
+    clientResponse: ["Client response time", "Client responstijd"],
+    queryMode: ["Query mode", "Querymodus"],
+    perNode: ["Per node", "Per node"],
+    globalFallback: ["All clients (fallback)", "Algemene terugvalmodus"],
+    wireless: ["Wi-Fi", "WiFi"],
+    lastError: ["Last error", "Laatste fout"],
+    active: ["Active", "Actief"],
+    paused: ["Paused", "Gepauzeerd"],
+    hourShort: ["h", "u"],
+    hour: ["hour", "uur"],
+    hours: ["hours", "uur"],
+    historyLoading: ["Loading history…", "Historie laden…"],
+    rateHint: [
+      "Combined throughput reported by clients.",
+      "Dit is de som van door clients gerapporteerde doorvoer; geen internetsnelheidstest.",
+    ],
+    visible: ["Visible sections", "Zichtbare onderdelen"],
+    showAll: ["Show all", "Alles tonen"],
+    widgetsHint: [
+      "Changes apply temporarily. Use the card editor or YAML to save your preferences.",
+      "Dit verandert de kaart tijdelijk. Voor blijvende instellingen gebruik je de kaarteditor of YAML.",
+    ],
+    multipleMeshes: [
+      "Several TP-Link Deco installations were found. The card shows the first one. Set {setting} to choose your mesh.",
+      "Meerdere TP-Link Deco-installaties gevonden. Momenteel wordt de eerste getoond. Stel {setting} in om de juiste mesh te kiezen.",
+    ],
+    noUnits: ["No Deco units found", "Geen Deco-units gevonden"],
+    noUnitsHint: [
+      "Check that the TP-Link Deco integration is running and that its device tracker entities are available.",
+      "Controleer of ha-tplink-deco actief is en de device_tracker-entiteiten beschikbaar zijn. De kaart gebruikt de Deco-integratie via het entiteitenregister.",
+    ],
+    retry: ["Try again", "Opnieuw proberen"],
+    mainCpu: ["Main Deco CPU", "CPU hoofd-Deco"],
+    response: ["API response time", "API responstijd"],
+    updated: ["Updated {time}", "Bijgewerkt {time}"],
+    noUpdate: ["Last update unknown", "Update onbekend"],
+    subtitle: ["Live mesh network", "Mesh netwerk live"],
+    chooseSections: ["Choose visible sections", "Zichtbare onderdelen kiezen"],
+    pollingOn: ["Polling active", "Polling actief"],
+    pollingOff: ["Polling off", "Polling uit"],
+    title: ["Title", "Titel"],
+    layout: ["Layout", "Formaat"],
+    meshEntry: ["Mesh installation", "Mesh-installatie"],
+    firstEntry: [
+      "Automatic (first installation)",
+      "Automatisch (eerste installatie)",
+    ],
+    historyRange: ["History range", "Grafiekvenster"],
+    allowBlock: [
+      "Allow blocking and unblocking clients",
+      "Clientbeheer toestaan (blokkeren en deblokkeren)",
+    ],
+    allowRename: [
+      "Allow renaming Deco clients",
+      "Deco-clients hernoemen toestaan",
+    ],
+    editorSections: ["Visible sections", "Zichtbare secties"],
+    editorHint: [
+      "Some diagnostic entities are disabled by default. Enable them under Settings → Devices & services → TP-Link Deco → Entities. Wi-Fi status depends on the firmware.",
+      "De diagnose-entiteiten zijn soms standaard uitgeschakeld. Schakel deze in onder Instellingen → Apparaten en diensten → TP-Link Deco → Entiteiten. WiFi-status verschilt per firmware.",
+    ],
+    description: [
+      "Mesh topology and network diagnostics for TP-Link Deco",
+      "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
+    ],
+  };
+  function makeUi(language, locale) {
+    const t = Object.fromEntries(
+      Object.entries(MESSAGES).map(([key, labels]) => [
+        key,
+        labels[language === "nl" ? 1 : 0],
+      ]),
+    );
+    const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+    const clock = { hour: "2-digit", minute: "2-digit", hourCycle: "h23" };
+    const date = { day: "2-digit", month: "2-digit" };
+    const clockTime = new Intl.DateTimeFormat(locale, clock);
+    const dateAndTime = new Intl.DateTimeFormat(locale, { ...date, ...clock });
+    const measureTime = new Intl.DateTimeFormat(locale, {
+      ...date,
+      ...clock,
+      second: "2-digit",
+    });
+    const chartNumber = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 10,
+    });
+    const field = (value, suffix = "") =>
+      value == null ? "—" : `${number.format(value)}${suffix}`;
+    const duration = (ms) =>
+      ms >= 1000 ? field(ms / 1000, " s") : field(ms, " ms");
+    function timeLabel(value) {
+      if (!valid(value)) return "—";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? String(value)
+        : dateAndTime.format(date);
+    }
+    return {
+      language,
+      locale,
+      t,
+      number,
+      clockTime,
+      dateAndTime,
+      measureTime,
+      chartNumber,
+      field,
+      duration,
+      timeLabel,
+    };
+  }
+  const UI = { en: makeUi("en", "en-US"), nl: makeUi("nl", "nl-NL") };
+  const uiFor = (language) =>
+    String(language || "")
+      .toLowerCase()
+      .split(/[-_]/)[0] === "nl"
+      ? UI.nl
+      : UI.en;
+  const hassUi = (hass) =>
+    uiFor(
+      hass?.language ||
+        hass?.locale?.language ||
+        document.documentElement?.lang,
+    );
+  const message = (template, values) =>
+    template.replace(/\{(\w+)\}/g, (_, key) => values[key]);
+  const countLabel = (count, singular, plural) =>
+    `${count ?? "—"} ${count === 1 ? singular : plural}`;
+  const historyLength = (hours, t) =>
+    `${hours} ${hours === 1 ? t.hour : t.hours}`;
   const COMPACT_WIDTH = 590;
   const WIDE_WIDTH = 800;
-  const VIEW_LABELS = {
-    auto: "Automatisch",
-    compact: "Compact",
-    expanded: "Uitgebreid",
-    wide: "Breed",
-  };
+  const VIEWS = ["auto", "compact", "expanded", "wide"];
   const DEFAULT_SECTIONS = [
     "topology",
     "traffic",
@@ -71,15 +301,14 @@
     "wifi",
     "api",
   ];
-  const SECTION_LABELS = {
-    topology: "Mesh-topologie",
-    traffic: "Netwerkactiviteit",
-    nodes: "Deco-diagnostiek",
-    clients: "Clients",
-    wifi: "WiFi-netwerken",
-    api: "Coordinator / API",
+  const SECTION_KEYS = {
+    topology: "topology",
+    traffic: "activity",
+    nodes: "diagnostics",
+    clients: "clients",
+    wifi: "wifi",
+    api: "api",
   };
-  const nf = new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 1 });
   const esc = (v) =>
     String(v ?? "").replace(
       /[&<>"']/g,
@@ -117,10 +346,6 @@
       : null;
   const stateVal = (hass, id) => (id ? hass?.states?.[id] : null);
   const numeric = (s) => num(s?.state);
-  const field = (v, suffix = "") =>
-    v == null ? "—" : `${nf.format(v)}${suffix}`;
-  const duration = (ms) =>
-    ms >= 1000 ? field(ms / 1000, " s") : field(ms, " ms");
   const boolAttr = (v) =>
     v === true || ["on", "online", "yes", "true", "1"].includes(normalize(v));
   function prettyName(raw) {
@@ -131,13 +356,13 @@
         .trim() || "Deco"
     );
   }
-  function modeLabel(v) {
+  function modeLabel(v, t) {
     const a = Array.isArray(v) ? v[0] : v;
     const s = normalize(a);
     if (["wired", "ethernet", "lan"].includes(s)) return "Ethernet";
     if (["band5", "5g", "5ghz", "5_ghz", "wifi_5g"].includes(s)) return "5 GHz";
-    if (["band2_4", "2.4g", "2_4ghz", "2.4ghz"].includes(s)) return "2,4 GHz";
-    if (s === "wireless") return "WiFi";
+    if (["band2_4", "2.4g", "2_4ghz", "2.4ghz"].includes(s)) return t.band24;
+    if (s === "wireless") return t.wireless;
     return valid(a) ? String(a) : "—";
   }
   function reading(hass, item) {
@@ -164,17 +389,6 @@
   function macOf(entry, hassState) {
     return normalize(hassState?.attributes?.mac || entry?.unique_id || "");
   }
-  function timeLabel(s) {
-    if (!valid(s)) return "—";
-    const d = new Date(s);
-    if (Number.isNaN(d.getTime())) return String(s);
-    return new Intl.DateTimeFormat("nl-NL", {
-      hour: "2-digit",
-      minute: "2-digit",
-      day: "2-digit",
-      month: "2-digit",
-    }).format(d);
-  }
   const ico = (name, size = 20) =>
     `<ha-icon icon="mdi:${esc(name)}" style="--mdc-icon-size:${size}px;width:${size}px;height:${size}px"></ha-icon>`;
 
@@ -192,9 +406,12 @@
     return before;
   }
 
-  function trendSvg({ down, up, start, end }) {
+  function trendSvg(
+    { down, up, start, end },
+    { t, number, clockTime, dateAndTime },
+  ) {
     if (!down.length && !up.length) {
-      return `<div class="empty-small">Geen Recorder-historie beschikbaar.</div>`;
+      return `<div class="empty-small">${t.noHistory}</div>`;
     }
     const width = 640,
       height = 150,
@@ -238,8 +455,8 @@
       .join("");
     return `<div class="chart">
       <div class="chart-unit">kB/s</div>
-      <div class="chart-scale"><span>${esc(nf.format(ceiling))}</span><span>${esc(nf.format(ceiling / 2))}</span><span>0</span></div>
-      <div class="chart-plot" tabindex="0" role="group" aria-label="Historische download en upload. Gebruik de pijltjestoetsen om metingen te bekijken." aria-describedby="${PREFIX}-readout">
+      <div class="chart-scale"><span>${esc(number.format(ceiling))}</span><span>${esc(number.format(ceiling / 2))}</span><span>0</span></div>
+      <div class="chart-plot" tabindex="0" role="group" aria-label="${t.chartLabel}" aria-describedby="${PREFIX}-readout">
         <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
           <defs><linearGradient id="${PREFIX}-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#27e5c4" stop-opacity=".27"/><stop offset="100%" stop-color="#27e5c4" stop-opacity="0"/></linearGradient></defs>
           <path class="grid-line" d="M0 ${padding} H${width} M0 ${height / 2} H${width} M0 ${height - padding} H${width}" vector-effect="non-scaling-stroke"/>
@@ -273,7 +490,7 @@
       this._config = {};
       this._hass = null;
       this._registry = null;
-      this._regError = "";
+      this._regError = false;
       this._registryConnection = null;
       this._registryLoading = false;
       this._history = { down: [], up: [] };
@@ -327,7 +544,9 @@
     }
     setConfig(config) {
       if (!config || config.type !== `custom:${CARD_TYPE}`)
-        throw new Error(`type moet custom:${CARD_TYPE} zijn`);
+        throw new Error(
+          message(this._ui.t.typeError, { type: `custom:${CARD_TYPE}` }),
+        );
       this._config = { ...config };
       this._localSections = null;
       this._historyKey = "";
@@ -342,9 +561,13 @@
         this._clientActionFeedback = new Map();
         this._clientRenameDialog?.element.close();
       }
+      if (this._ui !== hassUi(value)) this._clientRenameDialog?.element.close();
       this._hass = value;
       this._ensureRegistry();
       this._queueRender();
+    }
+    get _ui() {
+      return hassUi(this._hass);
     }
     getCardSize() {
       return this._isCompact() ? 5 : 10;
@@ -394,12 +617,11 @@
         this._registry = (Array.isArray(entities) ? entities : []).filter(
           (e) => e.platform === "tplink_deco",
         );
-        this._regError = "";
+        this._regError = false;
       } catch (e) {
         if (this._registryConnection !== conn) return;
         this._registry = null;
-        this._regError =
-          "Entityregister niet toegankelijk; beperkte detectie via tracker-attributen.";
+        this._regError = true;
       } finally {
         this._registryLoading = false;
         this._queueRender();
@@ -421,6 +643,7 @@
       };
     }
     _data() {
+      const { t, locale } = this._ui;
       const hass = this._hass,
         cfg = this._config,
         entries = this._allowedEntries();
@@ -492,7 +715,7 @@
           const onlineEntity = binEntity("online", deviceId);
           const internetState = stateVal(hass, internetEntity),
             onlineState = stateVal(hass, onlineEntity);
-          const connection = modeLabel(a.connection_type);
+          const connection = modeLabel(a.connection_type, t);
           return {
             id,
             name: label,
@@ -531,7 +754,7 @@
         .sort(
           (a, b) =>
             Number(b.master) - Number(a.master) ||
-            a.name.localeCompare(b.name, "nl"),
+            a.name.localeCompare(b.name, locale),
         );
       const master = nodes.find((x) => x.master) || nodes[0] || null;
       const clients = stateEntries
@@ -547,7 +770,7 @@
             online: isOnline(s.state),
             mac: normalize(a.deco_mac),
             decoName: String(a.deco_device || ""),
-            type: modeLabel(a.connection_type),
+            type: modeLabel(a.connection_type, t),
             down: num(a.down_kilobytes_per_s),
             up: num(a.up_kilobytes_per_s),
           };
@@ -603,9 +826,7 @@
           ];
       const lastError =
         lastErrors.find((value) => valid(value) && String(value) !== "0") ??
-        (lastErrors.some((value) => String(value) === "0")
-          ? "Geen fout geregistreerd"
-          : null);
+        (lastErrors.some((value) => String(value) === "0") ? "0" : null);
       const pollingID =
         manual.polling ||
         switchEntity("_polling") ||
@@ -766,6 +987,7 @@
       this._updateChartReadout(plot);
     }
     _updateChartReadout(plot) {
+      const { chartNumber, measureTime } = this._ui;
       const cursor = plot.querySelector(".chart-cursor");
       const readout = plot.closest(".chart").querySelector(".chart-readout");
       const { down, up, start, end } = this._history;
@@ -858,17 +1080,16 @@
         "canBlock",
         this._clientActionTargets(this._data()),
       );
+      const { t } = this._ui;
       const feedback = this._clientActionFeedback;
       if (!target || feedback.get(target.key)?.pending) return;
       if (
         blocked &&
-        !window.confirm(
-          `${target.name} blokkeren? Dit kan de netwerkverbinding verbreken.`,
-        )
+        !window.confirm(message(t.confirmBlock, { name: target.name }))
       )
         return;
 
-      feedback.set(target.key, { pending: true, message: "Actie uitvoeren…" });
+      feedback.set(target.key, { pending: true, message: "running" });
       this._queueRender();
       try {
         const result = await this._hass.callService(
@@ -880,26 +1101,29 @@
           true,
         );
         if (result?.response?.blocked !== blocked) {
-          throw new Error(
-            "Deco heeft de gevraagde blokkeerstatus niet bevestigd.",
-          );
+          feedback.set(target.key, {
+            message: "blockFailed",
+            reasonKey: "blockUnverified",
+            error: true,
+          });
+          return;
         }
-        const message = blocked
-          ? "Deco bevestigt: geblokkeerd."
-          : "Deco bevestigt: gedeblokkeerd.";
+        const message = blocked ? "blocked" : "unblocked";
         feedback.set(target.key, { message });
       } catch (error) {
         const reason = error?.message || error?.error?.message;
-        const message =
-          typeof reason === "string" && reason
-            ? `Actie mislukt. ${reason}`
-            : "Actie mislukt. Deco heeft de wijziging niet bevestigd.";
-        feedback.set(target.key, { message, error: true });
+        feedback.set(target.key, {
+          message: "blockFailed",
+          reason: typeof reason === "string" && reason ? reason : null,
+          reasonKey: "blockUnknown",
+          error: true,
+        });
       } finally {
         this._queueRender();
       }
     }
     _openClientRename(button) {
+      const { t, language } = this._ui;
       const target = this._findClientActionTarget(
         button.dataset,
         "canRename",
@@ -909,17 +1133,18 @@
 
       const element = document.createElement("dialog");
       element.className = "client-rename-dialog";
+      element.lang = language;
       element.setAttribute("aria-labelledby", "client-rename-title");
-      element.innerHTML = `<form>
-        <h3 id="client-rename-title">Client hernoemen</h3>
-        <p>Wijzig de naam van <strong>${esc(target.name)}</strong> op de Deco.</p>
-        <label>Nieuwe naam <input name="name" type="text" aria-describedby="client-rename-limit" autofocus required></label>
-        <small id="client-rename-limit">Maximaal ${CLIENT_NAME_MAX_BYTES} UTF-8-bytes.</small>
+      element.innerHTML = `<form novalidate>
+        <h3 id="client-rename-title">${t.renameTitle}</h3>
+        <p>${esc(message(t.renamePrompt, { name: target.name }))}</p>
+        <label>${t.newName} <input name="name" type="text" aria-describedby="client-rename-limit" autofocus required></label>
+        <small id="client-rename-limit">${message(t.nameLimit, { count: CLIENT_NAME_MAX_BYTES })}</small>
         <p class="client-rename-error" role="alert"></p>
         <p class="client-rename-status" role="status"></p>
         <div class="client-control-actions">
-          <button type="button" class="tiny-btn">Annuleren</button>
-          <button type="submit" class="tiny-btn">Hernoemen bevestigen</button>
+          <button type="button" class="tiny-btn">${t.cancel}</button>
+          <button type="submit" class="tiny-btn">${t.confirmRename}</button>
         </div>
       </form>`;
       const form = element.querySelector("form");
@@ -966,6 +1191,7 @@
       input.select();
     }
     async _renameClient(dialog) {
+      const { t } = this._ui;
       if (dialog.confirm.disabled || !dialog.element.open) return;
       const target = this._findClientActionTarget(
         dialog.target,
@@ -983,15 +1209,14 @@
         /[\p{C}\p{Z}]/u.test(name.replaceAll(" ", "")) ||
         new TextEncoder().encode(name).length > CLIENT_NAME_MAX_BYTES
       ) {
-        dialog.error.textContent =
-          "Gebruik een leesbare naam van 1 tot 32 UTF-8-bytes.";
+        dialog.error.textContent = t.invalidName;
         dialog.input.setAttribute("aria-invalid", "true");
         dialog.input.focus();
         return;
       }
 
       dialog.error.textContent = "";
-      dialog.status.textContent = "Naam wijzigen…";
+      dialog.status.textContent = t.renaming;
       dialog.submitted = true;
       dialog.input.disabled = true;
       dialog.confirm.disabled = true;
@@ -1006,11 +1231,10 @@
           true,
         );
         if (result?.response?.name !== name)
-          throw new Error("Deco heeft de nieuwe naam niet bevestigd.");
+          throw new Error(t.renameUnverified);
         if (!dialog.element.open) return;
-        dialog.status.textContent =
-          "Deco heeft de naam bevestigd. De kaart gebruikt de naam uit Home Assistant bij de volgende update.";
-        dialog.cancel.textContent = "Sluiten";
+        dialog.status.textContent = t.renamed;
+        dialog.cancel.textContent = t.close;
         dialog.cancel.disabled = false;
         dialog.cancel.focus();
       } catch (error) {
@@ -1019,8 +1243,8 @@
         dialog.status.textContent = "";
         dialog.error.textContent =
           typeof reason === "string" && reason
-            ? `Hernoemen mislukt. ${reason}`
-            : "Hernoemen mislukt. Deco heeft de nieuwe naam niet bevestigd.";
+            ? `${t.renameFailed} ${reason}`
+            : `${t.renameFailed} ${t.renameUnverified}`;
         dialog.input.disabled = false;
         dialog.confirm.disabled = false;
         dialog.cancel.disabled = false;
@@ -1074,16 +1298,17 @@
       }
     }
     _statusPill(value, yes = "Online", no = "Offline") {
-      return `<span class="status ${value === true ? "ok" : value === false ? "bad" : "unknown"}"><i></i>${esc(value === true ? yes : value === false ? no : "Onbekend")}</span>`;
+      const { t } = this._ui;
+      return `<span class="status ${value === true ? "ok" : value === false ? "bad" : "unknown"}"><i></i>${esc(value === true ? yes : value === false ? no : t.unknown)}</span>`;
     }
     _metric(label, value, icon) {
       return `<div class="metric"><span class="metric-icon">${ico(icon, 22)}</span><div><small>${esc(label)}</small><strong>${esc(value)}</strong></div></div>`;
     }
     _topology(d) {
+      const { t } = this._ui;
       const nodes = d.nodes,
         master = d.master;
-      if (!nodes.length)
-        return `<div class="empty-small">Geen Deco-nodes gevonden.</div>`;
+      if (!nodes.length) return `<div class="empty-small">${t.noNodes}</div>`;
       const satellites = nodes.filter((n) => n !== master).slice(0, 10);
       const pos = [
         [175, 138],
@@ -1125,14 +1350,15 @@
       const cards = positions
         .map(({ n, x, y, root }) => {
           const current = n.id === this._selectedNode;
-          const type = root ? "Hoofd-Deco" : n.connection;
-          return `<button type="button" data-action="node" data-id="${esc(n.id)}" aria-label="Details van ${esc(n.name)}" class="node ${root ? "root" : ""} ${current ? "selected" : ""} ${n.online === false ? "offline" : ""}" style="left:${(x / w) * 100}%;top:${(y / h) * 100}%"><span class="cylinder"></span><b title="${esc(n.name)}">${esc(n.name)}</b><span class="node-type">${esc(type)}</span><span class="node-info">${this._statusPill(n.online)}<small>${n.clientsCount == null ? "—" : esc(n.clientsCount)} clients</small></span></button>`;
+          const type = root ? t.mainDeco : n.connection;
+          return `<button type="button" data-action="node" data-id="${esc(n.id)}" aria-label="${esc(message(t.nodeDetails, { name: n.name }))}" class="node ${root ? "root" : ""} ${current ? "selected" : ""} ${n.online === false ? "offline" : ""}" style="left:${(x / w) * 100}%;top:${(y / h) * 100}%"><span class="cylinder"></span><b title="${esc(n.name)}">${esc(n.name)}</b><span class="node-type">${esc(type)}</span><span class="node-info">${this._statusPill(n.online)}<small>${countLabel(n.clientsCount, t.client, t.clientCount)}</small></span></button>`;
         })
         .join("");
       const total = nodes.length - satellites.length;
-      return `<div class="topology"><div class="topology-meta">${ico("access-point-network", 17)} ${esc(nodes.length)} Deco-units · ${esc(satellites.length)} satellieten${total > 1 ? ` · ${esc(total - 1)} niet getoond` : ""}</div><div class="mesh-canvas"><div class="waves"></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="M495 0 V157" class="internet-path"/>${lines}</svg><div class="internet-node">${ico("earth", 15)} Internet ${this._statusPill(d.internet)}</div>${cards}</div><div class="topology-note">Logisch overzicht op basis van de gemelde hoofd-Deco en satellietkoppelingen. Geen gemeten radiopad of signaalsterkte tussen nodes.</div></div>`;
+      return `<div class="topology"><div class="topology-meta">${ico("access-point-network", 17)} ${countLabel(nodes.length, t.unit, t.units)} · ${countLabel(satellites.length, t.satellite, t.satellites)}${total > 1 ? ` · ${esc(total - 1)} ${t.hiddenNodes}` : ""}</div><div class="mesh-canvas"><div class="waves"></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="M495 0 V157" class="internet-path"/>${lines}</svg><div class="internet-node">${ico("earth", 15)} Internet ${this._statusPill(d.internet)}</div>${cards}</div><div class="topology-note">${t.topologyNote}</div></div>`;
     }
     _nodeDetails(d) {
+      const { t, field } = this._ui;
       const n = d.nodes.find((n) => n.id === this._selectedNode);
       if (!n) return "";
       const line = (l, v) =>
@@ -1147,84 +1373,105 @@
             `<span class="client-chip">${ico("cellphone-link", 14)}${esc(c.name)}</span>`,
         )
         .join("");
-      return `<section class="detail-panel"><div class="section-head"><h3>${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="Details sluiten">✕</button></div><div class="detail-grid">${line("Status", n.online === true ? "Online" : n.online === false ? "Offline" : "—")}${line("Backhaul", n.master ? "Hoofd-Deco" : n.connection)}${line("CPU", field(n.cpu, "%"))}${line("Geheugen", field(n.memory, "%"))}${line("Backhaul snelheid", field(n.backhaulSpeed, " Mbit/s"))}${line("Backhaul maximum", field(n.backhaulMax, " Mbit/s"))}${line("Model", n.model || "—")}${line("Verbonden clients", n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? "Minder tonen" : `+${remaining} meer`}</button>` : ""}</div>` : ""}</section>`;
+      return `<section class="detail-panel"><div class="section-head"><h3>${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="${t.detailsClose}">✕</button></div><div class="detail-grid">${line("Status", n.online === true ? "Online" : n.online === false ? "Offline" : "—")}${line("Backhaul", n.master ? t.mainDeco : n.connection)}${line("CPU", field(n.cpu, "%"))}${line(t.memory, field(n.memory, "%"))}${line(t.backhaulSpeed, field(n.backhaulSpeed, " Mbit/s"))}${line(t.backhaulMax, field(n.backhaulMax, " Mbit/s"))}${line("Model", n.model || "—")}${line(t.connected, n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? t.fewer : message(t.more, { count: remaining })}</button>` : ""}</div>` : ""}</section>`;
     }
     _nodesPanel(d) {
-      return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} Deco-status en diagnose</h3><small>CPU / RAM per node</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>Clients</span><span>CPU</span><span>RAM</span><span>Backhaul</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, "%")}</span><span>${field(n.memory, "%")}</span><span>${esc(n.master ? "Hoofd" : n.connection)}</span></button>`).join("")}</div></section>`;
+      const { t, field } = this._ui;
+      return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} ${t.nodeStatus}</h3><small>${t.cpuPerNode}</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>Clients</span><span>CPU</span><span>RAM</span><span>Backhaul</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, "%")}</span><span>${field(n.memory, "%")}</span><span>${esc(n.master ? t.main : n.connection)}</span></button>`).join("")}</div></section>`;
     }
     _clientControlsPanel(targets) {
+      const { t, locale } = this._ui;
       if (!targets.length) return "";
       const rows = targets
-        .sort((a, b) => String(a.name).localeCompare(String(b.name), "nl"))
+        .sort((a, b) => String(a.name).localeCompare(String(b.name), locale))
         .map((client) => {
           const feedback = this._clientActionFeedback.get(client.key);
+          const details = feedback?.reason || t[feedback?.reasonKey];
+          const feedbackText = feedback
+            ? [t[feedback.message], details].filter(Boolean).join(" ")
+            : "";
           const actions = [];
           if (client.canBlock)
             actions.push(
-              ["block-client", "Blokkeren"],
-              ["unblock-client", "Deblokkeren"],
+              ["block-client", t.block],
+              ["unblock-client", t.unblock],
             );
-          if (client.canRename) actions.push(["rename-client", "Hernoemen"]);
+          if (client.canRename) actions.push(["rename-client", t.rename]);
           const buttons = actions
             .map(
               ([action, label]) =>
                 `<button type="button" class="tiny-btn" data-action="${action}" data-id="${esc(client.id)}" data-entry="${esc(client.entry)}" data-mac="${esc(client.mac)}" aria-label="${label}: ${esc(client.name)}" ${feedback?.pending ? "disabled" : ""}>${label}</button>`,
             )
             .join("");
-          return `<li class="client-control-row"><b>${esc(client.name)}</b><div class="client-control-actions">${buttons}</div><span class="client-control-feedback${feedback?.error ? " action-error" : ""}" role="${feedback?.error ? "alert" : "status"}">${esc(feedback?.message)}</span></li>`;
+          return `<li class="client-control-row"><b>${esc(client.name)}</b><div class="client-control-actions">${buttons}</div><span class="client-control-feedback${feedback?.error ? " action-error" : ""}" role="${feedback?.error ? "alert" : "status"}">${esc(feedbackText)}</span></li>`;
         })
         .join("");
-      return `<section class="panel client-controls"><div class="section-head"><h3>${ico("lock", 17)} Clientbeheer</h3></div><ul class="client-control-list">${rows}</ul></section>`;
+      return `<section class="panel client-controls"><div class="section-head"><h3>${ico("lock", 17)} ${t.controls}</h3></div><ul class="client-control-list">${rows}</ul></section>`;
     }
     _clientsPanel(d) {
+      const { t } = this._ui;
       const active = d.clients.filter((c) => c.online);
       const groups = [
-        ["2,4 GHz", "wifi"],
+        [t.band24, "wifi"],
         ["5 GHz", "wifi"],
         ["Ethernet", "lan"],
       ];
       const counts = new Map(groups.map(([label]) => [label, 0]));
       for (const client of active) {
-        const label = counts.has(client.type) ? client.type : "Onbekend/overig";
+        const label = counts.has(client.type) ? client.type : t.other;
         counts.set(label, (counts.get(label) ?? 0) + 1);
       }
-      if (counts.has("Onbekend/overig"))
-        groups.push(["Onbekend/overig", "help-circle-outline"]);
+      if (counts.has(t.other)) groups.push([t.other, "help-circle-outline"]);
       const bands = groups
         .map(
           ([label, icon]) =>
             `<div>${ico(icon, 16)} ${label} <strong>${d.clients.length ? counts.get(label) : "—"}</strong></div>`,
         )
         .join("");
-      return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} Clientactiviteit</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>verbonden clients</span></div><div class="bands">${bands}</div><small class="hint">Clientband komt uit het door Deco gemelde verbindingstype.</small></section>`;
+      return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} ${t.clientActivity}</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>${d.clientCount === 1 ? t.connectedSingle : t.connectedCount}</span></div><div class="bands">${bands}</div><small class="hint">${t.clientHint}</small></section>`;
     }
     _wifiPanel(d) {
+      const { t } = this._ui;
       const names = {
-        main: "Hoofdnetwerk",
-        guest: "Gastnetwerk",
-        iot: "IoT-netwerk",
+        main: t.primaryNetwork,
+        guest: t.guestNetwork,
+        iot: t.iotNetwork,
       };
-      return `<section class="panel"><div class="section-head"><h3>${ico("wifi", 19)} WiFi-netwerken</h3></div><div class="wifi-list">${Object.keys(
+      return `<section class="panel"><div class="section-head"><h3>${ico("wifi", 19)} ${t.wifi}</h3></div><div class="wifi-list">${Object.keys(
         names,
       )
         .map((k) => {
           const e = d.wifi[k];
-          return `<div class="wifi-row"><span>${ico("wifi", 18)}<span><b>${esc(names[k])}</b>${e.ssid ? `<small>${esc(e.ssid)}</small>` : ""}</span></span>${this._statusPill(e.on, "Aan", "Uit")}</div>`;
+          return `<div class="wifi-row"><span>${ico("wifi", 18)}<span><b>${esc(names[k])}</b>${e.ssid ? `<small>${esc(e.ssid)}</small>` : ""}</span></span>${this._statusPill(e.on, t.on, t.off)}</div>`;
         })
-        .join(
-          "",
-        )}</div><small class="hint">De hoofd-WiFi-sensor is standaard uitgeschakeld in de integratie. Ontbrekend = onbekend.</small></section>`;
+        .join("")}</div><small class="hint">${t.wifiHint}</small></section>`;
     }
     _apiPanel(d) {
-      const err = valid(d.lastError) ? String(d.lastError) : "—";
-      return `<section class="panel api-panel"><div class="section-head"><h3>${ico("code-braces", 19)} Coordinator / API</h3><small>Optionele diagnose-entiteiten</small></div><div class="api-grid"><div><small>Deco laatste update</small><strong>${esc(timeLabel(d.decoUpdate))}</strong></div><div><small>Clients laatste update</small><strong>${esc(timeLabel(d.clientUpdate))}</strong></div><div><small>Deco responstijd</small><strong>${esc(duration(d.response))}</strong></div><div><small>Client responstijd</small><strong>${esc(duration(d.clientResponse))}</strong></div><div><small>Querymodus</small><strong>${esc(valid(d.queryMode) ? d.queryMode : "—")}</strong></div><div><small>Timeouts</small><strong>${esc(d.timeouts == null ? "—" : d.timeouts)}</strong></div><div class="error-text"><small>Laatste fout</small><strong title="${esc(err)}">${esc(err)}</strong></div><div><small>Polling</small><strong>${d.polling === true ? "Actief" : d.polling === false ? "Gepauzeerd" : "—"}</strong></div></div></section>`;
+      const { t, duration, timeLabel } = this._ui;
+      const err =
+        d.lastError === "0"
+          ? t.noError
+          : valid(d.lastError)
+            ? String(d.lastError)
+            : "—";
+      const queryMode = {
+        per_node: t.perNode,
+        global_fallback: t.globalFallback,
+      };
+      const mode = Object.hasOwn(queryMode, d.queryMode)
+        ? queryMode[d.queryMode]
+        : valid(d.queryMode)
+          ? d.queryMode
+          : "—";
+      return `<section class="panel api-panel"><div class="section-head"><h3>${ico("code-braces", 19)} ${t.api}</h3><small>${t.optionalDiagnostics}</small></div><div class="api-grid"><div><small>${t.decoUpdated}</small><strong>${esc(timeLabel(d.decoUpdate))}</strong></div><div><small>${t.clientsUpdated}</small><strong>${esc(timeLabel(d.clientUpdate))}</strong></div><div><small>${t.decoResponse}</small><strong>${esc(duration(d.response))}</strong></div><div><small>${t.clientResponse}</small><strong>${esc(duration(d.clientResponse))}</strong></div><div><small>${t.queryMode}</small><strong>${esc(mode)}</strong></div><div><small>Timeouts</small><strong>${esc(d.timeouts == null ? "—" : d.timeouts)}</strong></div><div class="error-text"><small>${t.lastError}</small><strong title="${esc(err)}">${esc(err)}</strong></div><div><small>Polling</small><strong>${d.polling === true ? t.active : d.polling === false ? t.paused : "—"}</strong></div></div></section>`;
     }
     _trafficPanel(d) {
+      const { t, field } = this._ui;
       const hours = this._historyPeriod();
       const showHistory =
         !this._isCompact() || this._config.compact_chart !== false;
       const controls = showHistory
-        ? `<div class="chart-controls">${[1, 6, 24].map((h) => `<button type="button" data-action="hours" data-value="${h}" class="hour ${hours === h ? "active" : ""}" aria-pressed="${hours === h}">${h}u</button>`).join("")}</div>`
+        ? `<div class="chart-controls">${[1, 6, 24].map((h) => `<button type="button" data-action="hours" data-value="${h}" class="hour ${hours === h ? "active" : ""}" aria-pressed="${hours === h}">${h}${t.hourShort}</button>`).join("")}</div>`
         : "";
       const loading =
         this._historyLoading &&
@@ -1232,30 +1479,30 @@
         !this._history.up.length;
       const history = showHistory
         ? `
-        ${loading ? `<div class="empty-small">Historie laden…</div>` : trendSvg(this._history)}
-        <div class="legend"><span class="teal-dot"></span> Download <span class="blue-dot"></span> Upload <span class="legend-note">Recorder · ${hours} uur</span></div>`
+        ${loading ? `<div class="empty-small">${t.historyLoading}</div>` : trendSvg(this._history, this._ui)}
+        <div class="legend"><span class="teal-dot"></span> Download <span class="blue-dot"></span> Upload <span class="legend-note">Recorder · ${historyLength(hours, t)}</span></div>`
         : "";
       return `<section class="panel traffic-panel">
-        <div class="section-head"><h3>${ico("chart-areaspline", 19)} Netwerkactiviteit</h3>${controls}</div>
+        <div class="section-head"><h3>${ico("chart-areaspline", 19)} ${t.activity}</h3>${controls}</div>
         <div class="traffic-now"><span>${ico("arrow-down-bold", 15)} ${esc(field(d.down, " kB/s"))}</span><span>${ico("arrow-up-bold", 15)} ${esc(field(d.up, " kB/s"))}</span></div>
         ${history}
-        <small class="hint">Dit is de som van door clients gerapporteerde doorvoer; geen internetsnelheidstest.</small>
+        <small class="hint">${t.rateHint}</small>
       </section>`;
     }
     _sectionChoices() {
-      return `<section class="widget-picker"><div class="section-head"><h3>${ico("view-dashboard-edit", 18)} Zichtbare onderdelen</h3><button type="button" data-action="all-sections" class="tiny-btn">Alles tonen</button></div><div class="choices">${Object.entries(
-        SECTION_LABELS,
+      const { t } = this._ui;
+      return `<section class="widget-picker"><div class="section-head"><h3>${ico("view-dashboard-edit", 18)} ${t.visible}</h3><button type="button" data-action="all-sections" class="tiny-btn">${t.showAll}</button></div><div class="choices">${Object.entries(
+        SECTION_KEYS,
       )
         .map(
           ([id, label]) =>
-            `<button type="button" data-action="toggle-section" data-section="${esc(id)}" aria-pressed="${this._sections().includes(id)}" class="choice ${this._sections().includes(id) ? "chosen" : ""}">${this._sections().includes(id) ? "✓" : "+"} ${esc(label)}</button>`,
+            `<button type="button" data-action="toggle-section" data-section="${esc(id)}" aria-pressed="${this._sections().includes(id)}" class="choice ${this._sections().includes(id) ? "chosen" : ""}">${this._sections().includes(id) ? "✓" : "+"} ${esc(t[label])}</button>`,
         )
-        .join(
-          "",
-        )}</div><small class="hint">Dit verandert de kaart tijdelijk. Voor blijvende instellingen gebruik je de kaarteditor of YAML.</small></section>`;
+        .join("")}</div><small class="hint">${t.widgetsHint}</small></section>`;
     }
     _render() {
       if (!this._hass) return;
+      const { t, field, duration, timeLabel } = this._ui;
       const d = this._data();
       const clientTargets = this._clientActionTargets(d);
       const renameDialog = this._clientRenameDialog;
@@ -1275,18 +1522,18 @@
       const loaded = d.nodes.length > 0;
       if (loaded) this._ensureHistory(d);
       const topInfo = d.entries.multiple
-        ? `<div class="notice">Meerdere TP-Link Deco-installaties gevonden. Momenteel wordt de eerste getoond. Stel <code>entry_id</code> in om de juiste mesh te kiezen.</div>`
+        ? `<div class="notice">${message(t.multipleMeshes, { setting: "<code>entry_id</code>" })}</div>`
         : "";
-      const noData = `<div class="no-data">${ico("access-point-network-off", 36)}<b>Geen Deco-units gevonden</b><p>Controleer of ha-tplink-deco actief is en de device_tracker-entiteiten beschikbaar zijn. De kaart gebruikt de Deco-integratie via het entiteitenregister.</p><button type="button" data-action="retry">Opnieuw proberen</button>${this._regError ? `<small>${esc(this._regError)}</small>` : ""}</div>`;
+      const noData = `<div class="no-data">${ico("access-point-network-off", 36)}<b>${t.noUnits}</b><p>${t.noUnitsHint}</p><button type="button" data-action="retry">${t.retry}</button>${this._regError ? `<small>${esc(t.registryError)}</small>` : ""}</div>`;
       let body = noData;
       if (loaded) {
         const topology = section("topology", this._topology(d));
         const details = this._nodeDetails(d);
         const health = `<div class="health-strip">
-          ${this._metric("CPU hoofd-Deco", field(d.master?.cpu, "%"), "chip")}
-          ${this._metric("Geheugen", field(d.master?.memory, "%"), "memory")}
+          ${this._metric(t.mainCpu, field(d.master?.cpu, "%"), "chip")}
+          ${this._metric(t.memory, field(d.master?.memory, "%"), "memory")}
           ${this._metric("Backhaul", field(d.master?.backhaulSpeed, " Mbit/s"), "lan-connect")}
-          ${this._metric("API responstijd", duration(d.response), "timer-outline")}
+          ${this._metric(t.response, duration(d.response), "timer-outline")}
         </div>`;
         const traffic = section("traffic", this._trafficPanel(d));
         const wifi = section("wifi", this._wifiPanel(d));
@@ -1309,9 +1556,9 @@
           .filter(Number.isFinite),
       );
       const updateLabel = Number.isFinite(lastUpdate)
-        ? `Bijgewerkt ${timeLabel(lastUpdate)}`
-        : "Update onbekend";
-      const markup = `<style>${STYLE}</style><ha-card class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || CARD_NAME)}</h2><p>Mesh netwerk live</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="Zichtbare onderdelen kiezen">${ico("tune-variant", 18)}<span class="action-label"> Widgets</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? "Online" : d.internet === false ? "Offline" : "Onbekend", "earth")}${this._metric("Verbonden clients", d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric("Download", field(d.down, " kB/s"), "arrow-down-bold")}${this._metric("Upload", field(d.up, " kB/s"), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, "Polling actief", "Polling uit")}</span><span>${esc(CARD_NAME)}</span></div></ha-card>`;
+        ? message(t.updated, { time: timeLabel(lastUpdate) })
+        : t.noUpdate;
+      const markup = `<style>${STYLE}</style><ha-card lang="${this._ui.language}" class="frame ${layout}"><div class="aura"></div><div class="header"><div class="logo">${ico("access-point-network", 27)}</div><div class="head-title"><h2>${esc(this._config.title || CARD_NAME)}</h2><p>${t.subtitle}</p></div><div class="header-actions"><span class="update-mark">${ico("refresh", 14)} ${esc(updateLabel)}</span><button type="button" data-action="toggle-expand" aria-expanded="${this._expanded}" title="${t.chooseSections}">${ico("tune-variant", 18)}<span class="action-label"> Widgets</span></button></div></div>${topInfo}<div class="summary">${this._metric("Internet", d.internet === true ? "Online" : d.internet === false ? "Offline" : t.unknown, "earth")}${this._metric(t.connected, d.clientCount == null ? "—" : d.clientCount, "devices")}${this._metric("Download", field(d.down, " kB/s"), "arrow-down-bold")}${this._metric("Upload", field(d.up, " kB/s"), "arrow-up-bold")}</div>${this._expanded ? this._sectionChoices() : ""}${body}<div class="footer"><span>${this._statusPill(d.polling, t.pollingOn, t.pollingOff)}</span><span>${esc(CARD_NAME)}</span></div></ha-card>`;
       if (this._lastMarkup !== markup) {
         this._lastMarkup = markup;
         const activeElement = this.shadowRoot.activeElement;
@@ -1433,8 +1680,9 @@
           canCallClientAction(this._hass, action) !==
           canCallClientAction(hass, action),
       );
+      const languageChanged = hassUi(this._hass) !== hassUi(hass);
       this._hass = hass;
-      if (capabilitiesChanged) this._render();
+      if (capabilitiesChanged || languageChanged) this._render();
       this._loadEntries();
     }
     async _loadEntries() {
@@ -1478,27 +1726,22 @@
     }
     _render() {
       if (!this.shadowRoot) return;
+      const { t, language } = hassUi(this._hass);
       const c = this._config,
         styles = `<style>:host{display:block} .editor{display:grid;gap:15px;padding:8px 0;font-family:Roboto,Arial,sans-serif}label{display:grid;gap:4px;font-size:13px}input,select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid var(--divider-color,#777);background:var(--card-background-color,#fff);color:var(--primary-text-color,#222)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.checks label{display:flex;gap:7px;align-items:center}.checks input,.control-setting input{width:auto}.control-setting{display:flex;align-items:center}small{opacity:.75;font-size:11px}</style>`;
-      this.shadowRoot.innerHTML = `${styles}<div class="editor"><label>Titel<input name="title" value="${esc(c.title || CARD_NAME)}"/></label><label>Formaat<select name="view">${Object.entries(
-        VIEW_LABELS,
-      )
-        .map(
-          ([view, label]) =>
-            `<option value="${view}" ${c.view === view ? "selected" : ""}>${label}</option>`,
-        )
-        .join(
-          "",
-        )}</select></label><label>Mesh-installatie<select name="entry_id"><option value="">Automatisch (eerste installatie)</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>Grafiekvenster<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${h} uur</option>`).join("")}</select></label>${canCallClientAction(this._hass, CLIENT_BLOCK_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> Clientbeheer toestaan (blokkeren en deblokkeren)</label>` : ""}${canCallClientAction(this._hass, CLIENT_RENAME_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_rename" ${c.client_rename === true ? "checked" : ""}/> Deco-clients hernoemen toestaan</label>` : ""}<label>Zichtbare secties</label><div class="checks">${Object.entries(
-        SECTION_LABELS,
+      this.shadowRoot.innerHTML = `${styles}<div lang="${language}" class="editor"><label>${t.title}<input name="title" value="${esc(c.title || CARD_NAME)}"/></label><label>${t.layout}<select name="view">${VIEWS.map(
+        (view) =>
+          `<option value="${view}" ${c.view === view ? "selected" : ""}>${t[view]}</option>`,
+      ).join(
+        "",
+      )}</select></label><label>${t.meshEntry}<select name="entry_id"><option value="">${t.firstEntry}</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>${t.historyRange}<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${historyLength(h, t)}</option>`).join("")}</select></label>${canCallClientAction(this._hass, CLIENT_BLOCK_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> ${t.allowBlock}</label>` : ""}${canCallClientAction(this._hass, CLIENT_RENAME_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_rename" ${c.client_rename === true ? "checked" : ""}/> ${t.allowRename}</label>` : ""}<label>${t.editorSections}</label><div class="checks">${Object.entries(
+        SECTION_KEYS,
       )
         .map(
           ([id, label]) =>
-            `<label><input type="checkbox" data-section="true" name="${esc(id)}" ${c.sections?.includes(id) ? "checked" : ""}/> ${esc(label)}</label>`,
+            `<label><input type="checkbox" data-section="true" name="${esc(id)}" ${c.sections?.includes(id) ? "checked" : ""}/> ${esc(t[label])}</label>`,
         )
-        .join(
-          "",
-        )}</div><small>De diagnose-entiteiten zijn soms standaard uitgeschakeld. Schakel deze in onder Instellingen → Apparaten en diensten → TP-Link Deco → Entiteiten. WiFi-status verschilt per firmware.</small></div>`;
+        .join("")}</div><small>${t.editorHint}</small></div>`;
     }
   }
   if (!customElements.get(CARD_TYPE))
@@ -1510,9 +1753,10 @@
     window.customCards.push({
       type: CARD_TYPE,
       name: CARD_NAME,
-      description:
-        "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
+      get description() {
+        return hassUi().t.description;
+      },
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.6.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v1.7.0 `, "background:#008a80;color:white;");
 })();
