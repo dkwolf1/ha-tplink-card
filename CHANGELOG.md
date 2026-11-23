@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0
+
+Home Assistant administrators can now rename connected clients directly on the Deco from the card.
+
+- Enable **Deco-clients hernoemen toestaan** in the card editor or set `client_rename: true`. Renaming is off by default and independent of blocking.
+- The rename dialog checks the client's mesh and MAC, accepts names up to 32 UTF-8 bytes, and asks for confirmation. The card shows any action error and uses the new name once Home Assistant reports it. The entity ID stays the same.
+- Renaming requires a version of [ha-deco](https://github.com/dkwolf1/ha-deco) that provides `tplink_deco.rename_client`. Blocking and unblocking remain available on supported older versions.
+
 ## 1.5.0
 
 - Add optional administrator controls for blocking and unblocking known clients through ha-deco v4.0.0 or later.

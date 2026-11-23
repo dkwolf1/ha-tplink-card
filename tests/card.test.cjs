@@ -8,7 +8,15 @@ const source = fs.readFileSync(
 const defs = new Map();
 class Element {
   attachShadow() {
-    this.shadowRoot = { innerHTML: "", addEventListener: () => {} };
+    this.shadowRoot = {
+      get innerHTML() {
+        return this.child?.innerHTML ?? "";
+      },
+      append(child) {
+        this.child = child;
+      },
+      addEventListener() {},
+    };
     return this.shadowRoot;
   }
   dispatchEvent() {}
@@ -16,7 +24,7 @@ class Element {
 const globals = {
   HTMLElement: Element,
   customElements: { get: (n) => defs.get(n), define: (n, c) => defs.set(n, c) },
-  document: { createElement: () => ({}) },
+  document: { createElement: () => ({ style: {} }) },
   window: { customCards: [] },
   Intl,
   Number,

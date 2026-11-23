@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.5.0
+ * ha-tplink-card v1.6.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -31,6 +31,8 @@
   const CARD_NAME = "ha-tplink-card";
   const DECO_DOMAIN = "tplink_deco";
   const CLIENT_BLOCK_ACTION = "set_client_blocked";
+  const CLIENT_RENAME_ACTION = "rename_client";
+  const CLIENT_NAME_MAX_BYTES = 32;
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
   const measureTime = new Intl.DateTimeFormat("nl-NL", {
@@ -141,11 +143,11 @@
   function reading(hass, item) {
     return numeric(stateVal(hass, item));
   }
-  function canCallClientBlockAction(hass) {
+  function canCallClientAction(hass, action) {
     return (
       hass?.user?.is_admin === true &&
       hass.connected !== false &&
-      !!hass.services?.[DECO_DOMAIN]?.[CLIENT_BLOCK_ACTION] &&
+      !!hass.services?.[DECO_DOMAIN]?.[action] &&
       typeof hass.callService === "function"
     );
   }
@@ -264,6 +266,10 @@
     constructor() {
       super();
       this.attachShadow({ mode: "open" });
+      // Leave the rename dialog and its draft intact during dashboard updates.
+      this._content = document.createElement("div");
+      this._content.style.display = "contents";
+      this.shadowRoot.append(this._content);
       this._config = {};
       this._hass = null;
       this._registry = null;
@@ -277,6 +283,7 @@
       this._selectedNode = null;
       this._showAllClients = false;
       this._clientActionFeedback = new Map();
+      this._clientRenameDialog = null;
       this._chartTime = null;
       this._localSections = null;
       this._expanded = false;
@@ -316,6 +323,7 @@
     }
     disconnectedCallback() {
       this._resizeObserver?.disconnect();
+      this._clientRenameDialog?.element.close();
     }
     setConfig(config) {
       if (!config || config.type !== `custom:${CARD_TYPE}`)
@@ -332,6 +340,7 @@
         this._hass?.user?.id !== value?.user?.id
       ) {
         this._clientActionFeedback = new Map();
+        this._clientRenameDialog?.element.close();
       }
       this._hass = value;
       this._ensureRegistry();
@@ -787,10 +796,15 @@
     }
     _clientActionTargets(data) {
       const entry = data.entries.selected;
+      const canBlock =
+        this._config.client_controls === true &&
+        canCallClientAction(this._hass, CLIENT_BLOCK_ACTION);
+      const canRename =
+        this._config.client_rename === true &&
+        canCallClientAction(this._hass, CLIENT_RENAME_ACTION);
       if (
-        this._config.client_controls !== true ||
+        (!canBlock && !canRename) ||
         !this._sections().includes("clients") ||
-        !canCallClientBlockAction(this._hass) ||
         this._registryLoading ||
         this._registryConnection !== this._hass.connection ||
         !entry ||
@@ -804,7 +818,8 @@
         const registry = client.registry;
         if (
           registry?.platform !== DECO_DOMAIN ||
-          registry.config_entry_id !== entry
+          registry.config_entry_id !== entry ||
+          (!canBlock && client.online !== true)
         )
           return [];
         // v4.0.0 uses the client MAC as the tracker unique ID, including for linked devices.
@@ -822,16 +837,26 @@
             entry,
             mac,
             key: JSON.stringify([entry, mac]),
+            canBlock,
+            canRename: canRename && client.online === true,
           },
         ];
       });
     }
-    async _setClientBlocked(button, blocked) {
-      const target = this._clientActionTargets(this._data()).find(
+    _findClientActionTarget(identity, permission, targets) {
+      return targets.find(
         (client) =>
-          client.id === button.dataset.id &&
-          client.entry === button.dataset.entry &&
-          client.mac === button.dataset.mac,
+          client[permission] &&
+          client.id === identity.id &&
+          client.entry === identity.entry &&
+          client.mac === identity.mac,
+      );
+    }
+    async _setClientBlocked(button, blocked) {
+      const target = this._findClientActionTarget(
+        button.dataset,
+        "canBlock",
+        this._clientActionTargets(this._data()),
       );
       const feedback = this._clientActionFeedback;
       if (!target || feedback.get(target.key)?.pending) return;
@@ -874,6 +899,134 @@
         this._queueRender();
       }
     }
+    _openClientRename(button) {
+      const target = this._findClientActionTarget(
+        button.dataset,
+        "canRename",
+        this._clientActionTargets(this._data()),
+      );
+      if (!target || this._clientRenameDialog) return;
+
+      const element = document.createElement("dialog");
+      element.className = "client-rename-dialog";
+      element.setAttribute("aria-labelledby", "client-rename-title");
+      element.innerHTML = `<form>
+        <h3 id="client-rename-title">Client hernoemen</h3>
+        <p>Wijzig de naam van <strong>${esc(target.name)}</strong> op de Deco.</p>
+        <label>Nieuwe naam <input name="name" type="text" aria-describedby="client-rename-limit" autofocus required></label>
+        <small id="client-rename-limit">Maximaal ${CLIENT_NAME_MAX_BYTES} UTF-8-bytes.</small>
+        <p class="client-rename-error" role="alert"></p>
+        <p class="client-rename-status" role="status"></p>
+        <div class="client-control-actions">
+          <button type="button" class="tiny-btn">Annuleren</button>
+          <button type="submit" class="tiny-btn">Hernoemen bevestigen</button>
+        </div>
+      </form>`;
+      const form = element.querySelector("form");
+      const input = form.elements.name;
+      input.value = target.name;
+      const dialog = {
+        element,
+        target,
+        input,
+        submitted: false,
+        cancel: form.querySelector('[type="button"]'),
+        confirm: form.querySelector('[type="submit"]'),
+        error: form.querySelector('[role="alert"]'),
+        status: form.querySelector('[role="status"]'),
+      };
+      this._clientRenameDialog = dialog;
+      dialog.cancel.addEventListener("click", () => element.close());
+      element.addEventListener("cancel", (event) => {
+        if (dialog.cancel.disabled) event.preventDefault();
+      });
+      element.addEventListener("close", () => {
+        element.remove();
+        if (this._clientRenameDialog !== dialog) return;
+        this._clientRenameDialog = null;
+        [...this.shadowRoot.querySelectorAll('[data-action="rename-client"]')]
+          .find(
+            (item) =>
+              item.dataset.id === target.id &&
+              item.dataset.entry === target.entry &&
+              item.dataset.mac === target.mac,
+          )
+          ?.focus({ preventScroll: true });
+      });
+      input.addEventListener("input", () => {
+        dialog.error.textContent = "";
+        input.removeAttribute("aria-invalid");
+      });
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        this._renameClient(dialog);
+      });
+      this.shadowRoot.append(element);
+      element.showModal();
+      input.select();
+    }
+    async _renameClient(dialog) {
+      if (dialog.confirm.disabled || !dialog.element.open) return;
+      const target = this._findClientActionTarget(
+        dialog.target,
+        "canRename",
+        this._clientActionTargets(this._data()),
+      );
+      if (!target) {
+        dialog.element.close();
+        return;
+      }
+
+      const name = dialog.input.value.trim();
+      if (
+        !name ||
+        /[\p{C}\p{Z}]/u.test(name.replaceAll(" ", "")) ||
+        new TextEncoder().encode(name).length > CLIENT_NAME_MAX_BYTES
+      ) {
+        dialog.error.textContent =
+          "Gebruik een leesbare naam van 1 tot 32 UTF-8-bytes.";
+        dialog.input.setAttribute("aria-invalid", "true");
+        dialog.input.focus();
+        return;
+      }
+
+      dialog.error.textContent = "";
+      dialog.status.textContent = "Naam wijzigen…";
+      dialog.submitted = true;
+      dialog.input.disabled = true;
+      dialog.confirm.disabled = true;
+      dialog.cancel.disabled = true;
+      try {
+        const result = await this._hass.callService(
+          DECO_DOMAIN,
+          CLIENT_RENAME_ACTION,
+          { config_entry_id: target.entry, mac: target.mac, name },
+          undefined,
+          false,
+          true,
+        );
+        if (result?.response?.name !== name)
+          throw new Error("Deco heeft de nieuwe naam niet bevestigd.");
+        if (!dialog.element.open) return;
+        dialog.status.textContent =
+          "Deco heeft de naam bevestigd. De kaart gebruikt de naam uit Home Assistant bij de volgende update.";
+        dialog.cancel.textContent = "Sluiten";
+        dialog.cancel.disabled = false;
+        dialog.cancel.focus();
+      } catch (error) {
+        if (!dialog.element.open) return;
+        const reason = error?.message || error?.error?.message;
+        dialog.status.textContent = "";
+        dialog.error.textContent =
+          typeof reason === "string" && reason
+            ? `Hernoemen mislukt. ${reason}`
+            : "Hernoemen mislukt. Deco heeft de nieuwe naam niet bevestigd.";
+        dialog.input.disabled = false;
+        dialog.confirm.disabled = false;
+        dialog.cancel.disabled = false;
+        dialog.input.focus();
+      }
+    }
     _onClick(e) {
       if (this._pointAtChart(e)) return;
       const b = e.target.closest("[data-action]");
@@ -889,6 +1042,8 @@
         this._queueRender();
       } else if (a === "block-client" || a === "unblock-client") {
         this._setClientBlocked(b, a === "block-client");
+      } else if (a === "rename-client") {
+        this._openClientRename(b);
       } else if (a === "toggle-clients") {
         this._showAllClients = !this._showAllClients;
         this._queueRender();
@@ -997,18 +1152,20 @@
     _nodesPanel(d) {
       return `<section class="panel"><div class="section-head"><h3>${ico("access-point-network", 19)} Deco-status en diagnose</h3><small>CPU / RAM per node</small></div><div class="node-table"><div class="node-table-head"><span>Deco</span><span>Clients</span><span>CPU</span><span>RAM</span><span>Backhaul</span></div>${d.nodes.map((n) => `<button type="button" class="node-table-row" data-action="node" data-id="${esc(n.id)}"><span class="name-cell"><i class="dot ${n.online === true ? "on" : n.online === false ? "off" : ""}"></i>${esc(n.name)}</span><span>${n.clientsCount == null ? "—" : esc(n.clientsCount)}</span><span>${field(n.cpu, "%")}</span><span>${field(n.memory, "%")}</span><span>${esc(n.master ? "Hoofd" : n.connection)}</span></button>`).join("")}</div></section>`;
     }
-    _clientControlsPanel(d) {
-      const targets = this._clientActionTargets(d).sort((a, b) =>
-        String(a.name).localeCompare(String(b.name), "nl"),
-      );
+    _clientControlsPanel(targets) {
       if (!targets.length) return "";
       const rows = targets
+        .sort((a, b) => String(a.name).localeCompare(String(b.name), "nl"))
         .map((client) => {
           const feedback = this._clientActionFeedback.get(client.key);
-          const buttons = [
-            ["block-client", "Blokkeren"],
-            ["unblock-client", "Deblokkeren"],
-          ]
+          const actions = [];
+          if (client.canBlock)
+            actions.push(
+              ["block-client", "Blokkeren"],
+              ["unblock-client", "Deblokkeren"],
+            );
+          if (client.canRename) actions.push(["rename-client", "Hernoemen"]);
+          const buttons = actions
             .map(
               ([action, label]) =>
                 `<button type="button" class="tiny-btn" data-action="${action}" data-id="${esc(client.id)}" data-entry="${esc(client.entry)}" data-mac="${esc(client.mac)}" aria-label="${label}: ${esc(client.name)}" ${feedback?.pending ? "disabled" : ""}>${label}</button>`,
@@ -1100,6 +1257,18 @@
     _render() {
       if (!this._hass) return;
       const d = this._data();
+      const clientTargets = this._clientActionTargets(d);
+      const renameDialog = this._clientRenameDialog;
+      if (
+        renameDialog?.element.open &&
+        !renameDialog.submitted &&
+        !this._findClientActionTarget(
+          renameDialog.target,
+          "canRename",
+          clientTargets,
+        )
+      )
+        renameDialog.element.close();
       const layout = this._layout();
       const sections = this._sections();
       const section = (id, body) => (sections.includes(id) ? body : "");
@@ -1123,7 +1292,7 @@
         const wifi = section("wifi", this._wifiPanel(d));
         const nodes = section("nodes", this._nodesPanel(d));
         const clients = section("clients", this._clientsPanel(d));
-        const clientControls = this._clientControlsPanel(d);
+        const clientControls = this._clientControlsPanel(clientTargets);
         const api = section("api", this._apiPanel(d));
         const overview = topology + traffic + api;
         body =
@@ -1152,7 +1321,7 @@
         const clientScroll = this.shadowRoot.querySelector?.(
           ".client-control-list",
         )?.scrollTop;
-        this.shadowRoot.innerHTML = markup;
+        this._content.innerHTML = markup;
         if (clientScroll) {
           const list = this.shadowRoot.querySelector(".client-control-list");
           if (list) list.scrollTop = clientScroll;
@@ -1207,6 +1376,16 @@
     .client-control-feedback{flex-basis:100%;color:#c1dde4;overflow-wrap:anywhere}
     .client-control-feedback:empty{display:none}
     .client-control-feedback.action-error{color:#ffad9d}
+    .client-rename-dialog{width:min(420px,calc(100% - 32px));padding:20px;color:#eaf6ff;background:#0b2535;border:1px solid #42848e;border-radius:14px}
+    .client-rename-dialog::backdrop{background:#06131bbc}
+    .client-rename-dialog form{display:grid;gap:10px}
+    .client-rename-dialog h3,.client-rename-dialog p{margin:0;overflow-wrap:anywhere}
+    .client-rename-dialog label{display:grid;gap:5px}
+    .client-rename-dialog input{width:100%;padding:8px;font:inherit;color:inherit;background:#071c2b;border:1px solid #42848e;border-radius:8px}
+    .client-rename-dialog small{color:#add0d9}
+    .client-rename-dialog p:empty{display:none}
+    .client-rename-error{color:#ffad9d}
+    .client-rename-dialog .client-control-actions{justify-content:flex-end}
     .mesh-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:12px}
     .mesh-columns>div{display:grid;gap:10px;min-width:0}
     .mesh-columns .topology,.mesh-columns .detail-panel,.mesh-columns .health-strip{margin:0}
@@ -1246,10 +1425,16 @@
     }
     set hass(hass) {
       if (this._hass === hass) return;
-      const couldControlClients = canCallClientBlockAction(this._hass);
+      const capabilitiesChanged = [
+        CLIENT_BLOCK_ACTION,
+        CLIENT_RENAME_ACTION,
+      ].some(
+        (action) =>
+          canCallClientAction(this._hass, action) !==
+          canCallClientAction(hass, action),
+      );
       this._hass = hass;
-      if (couldControlClients !== canCallClientBlockAction(hass))
-        this._render();
+      if (capabilitiesChanged) this._render();
       this._loadEntries();
     }
     async _loadEntries() {
@@ -1278,7 +1463,8 @@
         const set = new Set(next.sections || DEFAULT_SECTIONS);
         t.checked ? set.add(t.name) : set.delete(t.name);
         next.sections = DEFAULT_SECTIONS.filter((s) => set.has(s));
-      } else if (t.name === "client_controls") next[t.name] = t.checked;
+      } else if (t.name === "client_controls" || t.name === "client_rename")
+        next[t.name] = t.checked;
       else if (t.name === "history_hours") next[t.name] = Number(t.value);
       else next[t.name] = t.value;
       this._config = next;
@@ -1303,7 +1489,7 @@
         )
         .join(
           "",
-        )}</select></label><label>Mesh-installatie<select name="entry_id"><option value="">Automatisch (eerste installatie)</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>Grafiekvenster<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${h} uur</option>`).join("")}</select></label>${canCallClientBlockAction(this._hass) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> Clientbeheer toestaan (blokkeren en deblokkeren)</label>` : ""}<label>Zichtbare secties</label><div class="checks">${Object.entries(
+        )}</select></label><label>Mesh-installatie<select name="entry_id"><option value="">Automatisch (eerste installatie)</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>Grafiekvenster<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${h} uur</option>`).join("")}</select></label>${canCallClientAction(this._hass, CLIENT_BLOCK_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> Clientbeheer toestaan (blokkeren en deblokkeren)</label>` : ""}${canCallClientAction(this._hass, CLIENT_RENAME_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_rename" ${c.client_rename === true ? "checked" : ""}/> Deco-clients hernoemen toestaan</label>` : ""}<label>Zichtbare secties</label><div class="checks">${Object.entries(
         SECTION_LABELS,
       )
         .map(
@@ -1328,5 +1514,5 @@
         "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.5.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v1.6.0 `, "background:#008a80;color:white;");
 })();
