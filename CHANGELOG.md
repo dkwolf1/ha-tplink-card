@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0-beta.1
+
+- Add optional administrator controls for blocking and unblocking known clients through ha-deco v4.0.0 or later.
+- Confirm a block before sending it and show the result verified by Deco or the reported error.
+
 ## 1.4.0
 
 - Default to the full section width and fit the card height to its content in Home Assistant.

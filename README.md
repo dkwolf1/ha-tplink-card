@@ -47,6 +47,19 @@ type: custom:tplink-deco-mesh-card
 
 The [extended example](examples/dashboard.yaml) includes history, sections, and an optional label and sensor override. Replace example entity IDs before enabling overrides. Select a Deco to open its details. Hover, tap or focus the plot and use the arrow keys to inspect measurements.
 
+### Optional client controls
+
+Client controls are available in card version `v1.5.0-beta.1`. The card is read-only by default. With [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) or later, a Home Assistant administrator can enable **Clientbeheer toestaan** in the card editor or set:
+
+```yaml
+type: custom:tplink-deco-mesh-card
+client_controls: true
+```
+
+Under **Clientbeheer**, an administrator can block or unblock known clients on the selected mesh, including offline clients with a tracker. Keep the **Clients** section visible. If you have several meshes, choose **Mesh-installatie** in the editor or set its exact `entry_id` in YAML before using the controls.
+
+The card only shows controls when Home Assistant offers `tplink_deco.set_client_blocked` and the entity registry identifies the client's MAC and mesh. It always sends the matching `config_entry_id` with the call. Blocking asks for confirmation. The card displays the result verified by Deco or the error that Home Assistant returns. Connectivity and block status are independent. The confirmation reflects the last action in this card.
+
 ### Make the card wider
 
 Add **ha-tplink-card** through the card picker and leave **Formaat** on **Automatisch**. In a Sections dashboard, the card fills its section and fits its height to the content by default. At 800 px of card width, the topology and diagnostics appear side by side. On narrower cards they stack.
@@ -121,6 +134,19 @@ type: custom:tplink-deco-mesh-card
 ```
 
 Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat het grafiekvenster, de secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
+
+### Optioneel clientbeheer
+
+Clientbeheer is beschikbaar in kaartversie `v1.5.0-beta.1`. De kaart is standaard alleen-lezen. Met [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) of nieuwer kan een Home Assistant-beheerder **Clientbeheer toestaan** aanvinken in de kaarteditor of dit instellen:
+
+```yaml
+type: custom:tplink-deco-mesh-card
+client_controls: true
+```
+
+Onder **Clientbeheer** kan een beheerder bekende clients op de gekozen mesh blokkeren en deblokkeren. Ook offline clients met een tracker staan in de lijst. Laat **Clients** aanstaan. Heb je meerdere meshes, kies dan de juiste **Mesh-installatie** in de editor of stel de exacte `entry_id` in via YAML.
+
+De knoppen verschijnen alleen als Home Assistant `tplink_deco.set_client_blocked` aanbiedt en het entiteitenregister de client-MAC en mesh bevestigt. De kaart stuurt altijd de bijbehorende `config_entry_id` mee. Bij blokkeren vraagt de kaart om bevestiging. Je ziet de door Deco bevestigde uitkomst of de foutmelding. Online/offline staat los van de blokkeerstatus. De bevestiging geldt voor de laatste actie in deze kaart.
 
 ### Maak de kaart breder
 
