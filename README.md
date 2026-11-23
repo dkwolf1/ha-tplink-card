@@ -30,7 +30,7 @@ You can also [open the card directly in Marketplace](https://my.home-assistant.i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.5.0` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.6.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -59,6 +59,21 @@ client_controls: true
 Under **Clientbeheer**, an administrator can block or unblock known clients on the selected mesh, including offline clients with a tracker. Keep the **Clients** section visible. If you have several meshes, choose **Mesh-installatie** in the editor or set its exact `entry_id` in YAML before using the controls.
 
 The card only shows controls when Home Assistant offers `tplink_deco.set_client_blocked` and the entity registry identifies the client's MAC and mesh. It always sends the matching `config_entry_id` with the call. Blocking asks for confirmation. The card displays the result verified by Deco or the error that Home Assistant returns. Connectivity and block status are independent. The confirmation reflects the last action in this card.
+
+#### Rename a Deco client
+
+Renaming is available from card version `v1.6.0`. It is off by default and can be enabled independently of blocking. Use a version of [ha-deco](https://github.com/dkwolf1/ha-deco) that exposes `tplink_deco.rename_client`. In the card editor, enable **Deco-clients hernoemen toestaan**, or set:
+
+```yaml
+type: custom:tplink-deco-mesh-card
+client_rename: true
+```
+
+Keep **Clients** visible. With multiple meshes, choose **Mesh-installatie** in the editor or set `entry_id` in YAML. As a Home Assistant administrator, open **Clientbeheer**, select **Hernoemen** next to a connected client, enter a name of up to 32 UTF-8 bytes, and select **Hernoemen bevestigen**. The card shows the action only when it can verify the client's mesh and MAC address.
+
+This updates the name on the Deco and preserves the Home Assistant entity ID. The card shows any error and reflects the new name when Home Assistant next reports it.
+
+![Client rename dialog with an example name and a confirmation button](docs/screenshots/client-rename.png)
 
 ### Make the card wider
 
@@ -118,7 +133,7 @@ Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assist
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.5.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.6.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -147,6 +162,19 @@ client_controls: true
 Onder **Clientbeheer** kan een beheerder bekende clients op de gekozen mesh blokkeren en deblokkeren. Ook offline clients met een tracker staan in de lijst. Laat **Clients** aanstaan. Heb je meerdere meshes, kies dan de juiste **Mesh-installatie** in de editor of stel de exacte `entry_id` in via YAML.
 
 De knoppen verschijnen alleen als Home Assistant `tplink_deco.set_client_blocked` aanbiedt en het entiteitenregister de client-MAC en mesh bevestigt. De kaart stuurt altijd de bijbehorende `config_entry_id` mee. Bij blokkeren vraagt de kaart om bevestiging. Je ziet de door Deco bevestigde uitkomst of de foutmelding. Online/offline staat los van de blokkeerstatus. De bevestiging geldt voor de laatste actie in deze kaart.
+
+#### Een Deco-client hernoemen
+
+Hernoemen is beschikbaar vanaf kaartversie `v1.6.0`. De functie staat standaard uit en kun je los van blokkeren aanzetten. Gebruik een versie van [ha-deco](https://github.com/dkwolf1/ha-deco) die `tplink_deco.rename_client` aanbiedt. Vink **Deco-clients hernoemen toestaan** aan in de kaarteditor of gebruik:
+
+```yaml
+type: custom:tplink-deco-mesh-card
+client_rename: true
+```
+
+Laat **Clients** zichtbaar. Kies bij meerdere meshes **Mesh-installatie** in de kaarteditor of stel `entry_id` in via YAML. Open als Home Assistant-beheerder **Clientbeheer**, kies **Hernoemen** bij een verbonden client, voer een naam van maximaal 32 UTF-8-bytes in en kies **Hernoemen bevestigen**. De kaart toont de optie alleen als ze de juiste mesh en het MAC-adres kan verifiëren.
+
+De naam wijzigt op de Deco en de Home Assistant-entiteits-ID blijft gelijk. De kaart toont een eventuele fout en geeft de nieuwe naam weer zodra Home Assistant die doorgeeft. [Bekijk het hernoemvenster](docs/screenshots/client-rename.png)
 
 ### Maak de kaart breder
 

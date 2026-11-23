@@ -199,6 +199,6 @@ gh pr create --repo hacs/default --base master --head "dkwolf1:$decoCatalogBranc
 
 De aangeleverde kaartbron draagt de vermelding **MIT License - 2026**. Deze repo behoudt die vermelding en bevat de volledige MIT-licentietekst op naam van de bijdragers aan de kaart. Het Ziggo-voorbeeld is gebruikt om de structuur te vergelijken. De Ziggo-code, afbeeldingen en MPL 2.0-licentie zijn buiten deze kaartrepo gebleven.
 
-De runtime gebruikt iconen via Home Assistants `ha-icon`, systeemfonts en eigen CSS en SVG. Er zijn geen afzonderlijke iconen, fonts of conceptafbeeldingen gebundeld. De twee screenshots zijn werkelijk gerenderde demo-opnamen met zelf gemaakte fictieve data. In de demo nemen neutrale symbolen de plaats van de Home Assistant-iconen in.
+De runtime gebruikt iconen via Home Assistants `ha-icon`, systeemfonts en eigen CSS en SVG. Er zijn geen afzonderlijke iconen, fonts of conceptafbeeldingen gebundeld. De screenshots zijn werkelijk gerenderde demo-opnamen met fictieve data. In de demo nemen neutrale symbolen de plaats van de Home Assistant-iconen in.
 
 De ZIP bevat uitsluitend de module en licentie. Controleer vóór publicatie dat je de rechthebbende bent of toestemming hebt om de oorspronkelijke aangeleverde kaart onder MIT te distribueren. De licentievermelding in de bron is aanwezig, maar de ZIP vermeldde geen oorspronkelijke rechthebbende.
