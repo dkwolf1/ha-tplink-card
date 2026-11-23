@@ -72,6 +72,41 @@ test("keeps missing states readable when registry or Recorder is unavailable", a
   await expect(card(page).getByText("Update onbekend")).toBeVisible();
 });
 
+test("uses the container width without a layout override", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/demo/");
+  const mesh = card(page);
+  const frame = mesh.locator("ha-card");
+  const grid = await mesh.evaluate((element) => element.getGridOptions());
+  expect(grid).toMatchObject({ columns: "full", rows: "auto" });
+
+  for (const [width, layout] of [
+    [400, "compact"],
+    [650, "expanded"],
+    [800, "wide"],
+  ]) {
+    await mesh.evaluate((element, size) => {
+      element.style.width = size + "px";
+    }, width);
+    await expect(frame).toHaveClass(`frame ${layout}`);
+  }
+  await expect(mesh.locator(".mesh-columns")).toBeVisible();
+  await mesh.evaluate((element) => {
+    element.setConfig({
+      type: "custom:tplink-deco-mesh-card",
+      view: "expanded",
+    });
+  });
+  await expect(frame).toHaveClass("frame expanded");
+  await mesh.evaluate((element) => {
+    element.setConfig({
+      type: "custom:tplink-deco-mesh-card",
+      view: "compact",
+    });
+  });
+  await expect(frame).toHaveClass("frame compact");
+});
+
 test("editor emits Lovelace config changes", async ({ page }) => {
   await page.goto("/demo/");
   await expect(card(page).locator(".node")).toHaveCount(4);

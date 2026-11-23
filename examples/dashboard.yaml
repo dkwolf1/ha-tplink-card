@@ -1,11 +1,7 @@
 type: custom:tplink-deco-mesh-card
 title: ha-tplink-card
-view: wide
 history_hours: 6
 compact_chart: true
-grid_options:
-  columns: full
-  rows: auto
 sections:
   - topology
   - traffic

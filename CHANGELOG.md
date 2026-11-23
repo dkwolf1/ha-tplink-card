@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0
+
+- Default to the full section width and fit the card height to its content in Home Assistant.
+- Switch the automatic layout to two columns when the card is at least 800 px wide. Keep explicit Compact and Expanded layouts.
+
 ## 1.3.1
 
 - Use ha-tplink-card as the name in Marketplace, the Home Assistant card picker, and the documentation.
