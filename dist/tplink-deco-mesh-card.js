@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.5.0-beta.1
+ * ha-tplink-card v1.5.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -1328,8 +1328,5 @@
         "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
       preview: true,
     });
-  console.info(
-    `%c ${CARD_NAME} v1.5.0-beta.1 `,
-    "background:#008a80;color:white;",
-  );
+  console.info(`%c ${CARD_NAME} v1.5.0 `, "background:#008a80;color:white;");
 })();

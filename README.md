@@ -30,7 +30,7 @@ You can also [open the card directly in Marketplace](https://my.home-assistant.i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.4.0` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.5.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -49,7 +49,7 @@ The [extended example](examples/dashboard.yaml) includes history, sections, and 
 
 ### Optional client controls
 
-Client controls are available in card version `v1.5.0-beta.1`. The card is read-only by default. With [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) or later, a Home Assistant administrator can enable **Clientbeheer toestaan** in the card editor or set:
+Client controls are available from card version `v1.5.0`. The card is read-only by default. With [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) or later, a Home Assistant administrator can enable **Clientbeheer toestaan** in the card editor or set:
 
 ```yaml
 type: custom:tplink-deco-mesh-card
@@ -118,7 +118,7 @@ Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assist
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.4.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.5.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -137,7 +137,7 @@ Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat het grafiekvenster, d
 
 ### Optioneel clientbeheer
 
-Clientbeheer is beschikbaar in kaartversie `v1.5.0-beta.1`. De kaart is standaard alleen-lezen. Met [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) of nieuwer kan een Home Assistant-beheerder **Clientbeheer toestaan** aanvinken in de kaarteditor of dit instellen:
+Clientbeheer is beschikbaar vanaf kaartversie `v1.5.0`. De kaart is standaard alleen-lezen. Met [ha-deco v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0) of nieuwer kan een Home Assistant-beheerder **Clientbeheer toestaan** aanvinken in de kaarteditor of dit instellen:
 
 ```yaml
 type: custom:tplink-deco-mesh-card

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0-beta.1
+## 1.5.0
 
 - Add optional administrator controls for blocking and unblocking known clients through ha-deco v4.0.0 or later.
 - Confirm a block before sending it and show the result verified by Deco or the reported error.
