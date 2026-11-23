@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.3.1
+ * ha-tplink-card v1.4.0
  * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -52,7 +52,7 @@
     maximumFractionDigits: 10,
   });
   const COMPACT_WIDTH = 590;
-  const WIDE_WIDTH = 900;
+  const WIDE_WIDTH = 800;
   const VIEW_LABELS = {
     auto: "Automatisch",
     compact: "Compact",
@@ -315,16 +315,16 @@
     }
     getGridOptions() {
       return {
-        columns: 12,
+        columns: "full",
         min_columns: 4,
-        rows: this._isCompact() ? 7 : 11,
+        rows: "auto",
         min_rows: 4,
       };
     }
     _layout() {
       const view = this._config.view;
       if (view === "compact" || view === "expanded") return view;
-      if (view === "wide" && this._cardWidth >= WIDE_WIDTH) return "wide";
+      if (this._cardWidth >= WIDE_WIDTH) return "wide";
       if (this._cardWidth > 0 && this._cardWidth < COMPACT_WIDTH)
         return "compact";
       return "expanded";
@@ -1164,5 +1164,5 @@
         "Visuele mesh-topologie en netwerkdiagnostiek voor ha-tplink-deco",
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.3.1 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v1.4.0 `, "background:#008a80;color:white;");
 })();

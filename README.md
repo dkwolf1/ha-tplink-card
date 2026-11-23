@@ -30,7 +30,7 @@ You can also [open the card directly in Marketplace](https://my.home-assistant.i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.3.1` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.4.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -45,22 +45,30 @@ Minimal configuration:
 type: custom:tplink-deco-mesh-card
 ```
 
-The [extended example](examples/dashboard.yaml) includes a wide layout, history, sections, and an optional label and sensor override. Replace example entity IDs before enabling overrides. Select a Deco to open its details. Hover, tap or focus the plot and use the arrow keys to inspect measurements.
+The [extended example](examples/dashboard.yaml) includes history, sections, and an optional label and sensor override. Replace example entity IDs before enabling overrides. Select a Deco to open its details. Hover, tap or focus the plot and use the arrow keys to inspect measurements.
 
 ### Make the card wider
 
-For a wide card, give it its own tab in your existing dashboard.
+Add **ha-tplink-card** through the card picker and leave **Formaat** on **Automatisch**. In a Sections dashboard, the card fills its section and fits its height to the content by default. At 800 px of card width, the topology and diagnostics appear side by side. On narrower cards they stack.
 
-1. Open the dashboard where you want the card. Select the pencil in the top-right corner.
-2. Select **+** on the top row of dashboard tabs. Name the new tab **Deco** and set **View type** to **Panel (1 card)**. Save the tab. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/)
-3. Open the new **Deco** tab. Select **Add card → Manual**, paste the YAML below, and save the card.
+Home Assistant sets the space available to each card. To fill a whole tab, place this card alone on a **Panel (1 card)** tab. On an existing card, a saved size override in **Layout** still applies. Select **Use recommended size** to restore the new default. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/) · [Resizing a card](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
+
+#### Widen an existing Sections dashboard
+
+If the card fills one narrow section and leaves space next to it, edit the **view YAML**. Set `max_columns: 3` at the top level. Under `sections:`, update the section that already contains the card to match the structure below. Keep your other sections, cards, and settings.
 
 ```yaml
-type: custom:tplink-deco-mesh-card
-view: wide
+- type: grid
+  column_span: 3
+  cards:
+    - type: custom:tplink-deco-mesh-card
+      view: wide
+      grid_options:
+        columns: full
+        rows: auto
 ```
 
-The Panel tab gives the card the entire width of that tab. The card shows two columns when it gets at least 900 px. If it still stacks, maximize the browser and collapse the Home Assistant sidebar. Your existing tab stays as it was.
+`column_span: 3` lets that section span three columns when the screen has room. `columns: full` makes the card fill that section. If the card already uses `view: wide`, the key change is adding the section span.
 
 ### Updates and troubleshooting
 
@@ -97,7 +105,7 @@ Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assist
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.3.1` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.4.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -112,22 +120,30 @@ Minimale configuratie:
 type: custom:tplink-deco-mesh-card
 ```
 
-Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat een brede indeling, venster, secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
+Het [uitgebreide voorbeeld](examples/dashboard.yaml) bevat het grafiekvenster, de secties en een optioneel label en sensor-override. Vervang de voorbeeld-entiteits-ID's voordat je die overrides gebruikt. Tik op een Deco voor details. Gebruik de muis, tik of geef de grafiek focus en gebruik de pijltjestoetsen voor meetwaarden.
 
 ### Maak de kaart breder
 
-Geef de kaart een eigen tabblad binnen je bestaande dashboard.
+Voeg **ha-tplink-card** toe via de kaartkiezer en laat **Formaat** op **Automatisch** staan. Op een dashboard met secties vult de kaart standaard de hele sectie en past de hoogte zich aan de inhoud aan. Vanaf 800 px kaartbreedte staan topologie en diagnose naast elkaar. Bij minder ruimte staan ze onder elkaar.
 
-1. Open je dashboard. Klik rechtsboven op het potlood.
-2. Klik bovenaan, in de rij met tabbladen, op **+**. Noem het nieuwe tabblad **Deco** en kies als weergavetype **Paneel (1 kaart)**. Sla het tabblad op. [Paneelweergave van Home Assistant](https://www.home-assistant.io/dashboards/panel/)
-3. Open het nieuwe tabblad **Deco**. Kies **Kaart toevoegen → Handmatig**, plak de YAML hieronder en sla de kaart op.
+Home Assistant bepaalt hoeveel ruimte elke kaart krijgt. Wil je dat de kaart een heel tabblad vult, plaats haar dan als enige kaart op een tabblad van het type **Paneel (1 kaart)**. Bij een bestaande kaart blijft een eerder ingestelde grootte onder **Indeling** gelden. Kies **Gebruik aanbevolen grootte** om de nieuwe standaard te gebruiken. [Paneelweergave](https://www.home-assistant.io/dashboards/panel/) · [Kaartgrootte aanpassen](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
+
+#### Maak de kaart breder op een bestaand tabblad met secties
+
+Vult de kaart één smalle sectie en blijft de ruimte ernaast leeg? Open de **YAML van het tabblad** en zet `max_columns: 3` op het hoogste niveau. Pas onder `sections:` de sectie met de kaart aan volgens het blok hieronder. Behoud je andere secties, kaarten en instellingen.
 
 ```yaml
-type: custom:tplink-deco-mesh-card
-view: wide
+- type: grid
+  column_span: 3
+  cards:
+    - type: custom:tplink-deco-mesh-card
+      view: wide
+      grid_options:
+        columns: full
+        rows: auto
 ```
 
-Op een paneeltabblad krijgt de kaart de hele breedte van dat tabblad. Vanaf 900 px staan de onderdelen naast elkaar. Staan ze nog onder elkaar, maximaliseer dan je browser en klap de Home Assistant-zijbalk in. Je bestaande tabblad blijft intact.
+Met `column_span: 3` gebruikt die sectie drie kolommen zodra het scherm daar ruimte voor heeft. Met `columns: full` vult de kaart die sectie. Staat de kaart al op `view: wide`, dan is de ontbrekende sectiebreedte de instelling die je moet aanpassen.
 
 ### Updates en problemen oplossen
 
