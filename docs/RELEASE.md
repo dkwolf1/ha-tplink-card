@@ -114,6 +114,8 @@ Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home
 
 ## Aanmelding voor de standaardcatalogus
 
+De kaart staat in de standaardcatalogus. Onderstaande stappen beschrijven de oorspronkelijke aanmelding. Nieuwe kaartreleases verschijnen via de bestaande vermelding. [Goedgekeurde catalogus-PR](https://github.com/hacs/default/pull/14722)
+
 De actuele upstream-branch is **master** en het JSON-bestand heet **plugin**. De catalogus verwacht één alfabetisch ingevoegde repositorynaam en een PR vanuit je persoonlijke fork, met bewerken door maintainers toegestaan. Maak de PR na de succesvolle Marketplace-installatietest. Voor de catalogusindiening gebruik je de catalogusfork en hoef je de kaartversie niet opnieuw te verhogen. [Catalogusgids](https://contributors.home-assistant.io/marketplace/guides/catalog/) · [Actuele pluginlijst](https://github.com/hacs/default/blob/master/plugin) · [Actuele PR-template](https://github.com/hacs/default/blob/master/.github/PULL_REQUEST_TEMPLATE.md)
 
 Voer de blokken hieronder in dezelfde PowerShell-sessie uit. Bestaat je persoonlijke fork al, laat dan de opdracht met `gh repo fork` achterwege. Kies een nieuwe map voor de cataloguscheckout.

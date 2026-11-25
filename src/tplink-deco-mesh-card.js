@@ -1,6 +1,6 @@
 /*
  * ha-tplink-card v1.8.0
- * Independent Home Assistant Lovelace custom card for amosyuen/ha-tplink-deco.
+ * Home Assistant Lovelace card for compatible tplink_deco integrations.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
  * SPDX-License-Identifier: MIT

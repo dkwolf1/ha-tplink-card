@@ -13,19 +13,19 @@ A Home Assistant dashboard card for your TP-Link Deco mesh. It shows logical mes
 ### Requirements
 
 - Home Assistant with support for custom dashboard cards.
-- The [TP-Link Deco integration](https://github.com/dkwolf1/ha-deco), configured for your mesh. The card reads Deco and client trackers, sensors, and the entity registry. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
+- For read-only monitoring, use [amosyuen/ha-tplink-deco](https://github.com/amosyuen/ha-tplink-deco), [dkwolf1/ha-deco](https://github.com/dkwolf1/ha-deco), or another integration that provides compatible `tplink_deco` entities. The card needs Deco and client device trackers to show the mesh and its clients. CPU, memory, backhaul, Wi-Fi, and API sensors depend on your model and may be disabled by default.
+- Optional controls require `dkwolf1/ha-deco` with the corresponding Home Assistant action. Blocking and unblocking are available from [v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0). Renaming is available from [v4.1.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.1.0).
 - History requires Home Assistant Recorder to record the total download and upload sensors. Live data remains available without history.
 
 ### Installation
 
 #### Using Marketplace
 
-1. In Home Assistant 2026.11 or later, go to **Settings → Marketplace** and choose **Add from link** in the upper-right corner.
-2. Paste `https://github.com/dkwolf1/ha-tplink-card`. Connect GitHub if prompted and select **Dashboard** if the repository type is not detected.
-3. Open **ha-tplink-card** in Marketplace and select **Install**. If you manage dashboard resources in YAML, use the JavaScript module shown in the installation dialog.
-4. Reload the browser and choose **ha-tplink-card** from **Add card**.
+1. In Home Assistant 2026.11 or later, go to **Settings → Marketplace** and search for **ha-tplink-card**.
+2. Open the card and select **Install**. If you manage dashboard resources in YAML, use the JavaScript module shown in the installation dialog.
+3. Reload the browser and choose **ha-tplink-card** from **Add card**.
 
-You can also [open the card directly in Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Until it joins the default catalog, add it as a custom repository. For an older Home Assistant installation with HACS, use the [HACS link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant Marketplace guide](https://www.home-assistant.io/integrations/marketplace/)
+The card is in the default catalog. You can also open its listing directly. If it is missing from your Marketplace catalog, use **Add from link** with `https://github.com/dkwolf1/ha-tplink-card`. [Marketplace listing](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin) · [HACS listing](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin) · [Marketplace guide](https://www.home-assistant.io/integrations/marketplace/)
 
 #### Manual installation
 
@@ -62,7 +62,7 @@ The card only shows controls when Home Assistant offers `tplink_deco.set_client_
 
 #### Rename a Deco client
 
-Renaming is available from card version `v1.6.0`. It is off by default and can be enabled independently of blocking. Use a version of [ha-deco](https://github.com/dkwolf1/ha-deco) that exposes `tplink_deco.rename_client`. In the card editor, enable **Allow renaming Deco clients**, or set:
+Renaming is available from card version `v1.6.0`. It is off by default and can be enabled independently of blocking. Use [ha-deco v4.1.0 or later](https://github.com/dkwolf1/ha-deco/releases/tag/v4.1.0) with the `tplink_deco.rename_client` action. In the card editor, enable **Allow renaming Deco clients**, or set:
 
 ```yaml
 type: custom:tplink-deco-mesh-card
@@ -116,19 +116,19 @@ Een Home Assistant-dashboardkaart voor je TP-Link Deco-mesh. Bekijk de logische 
 ### Vereisten
 
 - Home Assistant met ondersteuning voor aangepaste dashboardkaarten.
-- De [TP-Link Deco-integratie](https://github.com/dkwolf1/ha-deco), ingesteld op je Deco-installatie. De kaart leest Deco- en clienttrackers, sensoren en het entiteitenregister. CPU, RAM, backhaul en WiFi/API-sensoren verschillen per model en staan soms standaard uit.
+- Gebruik voor alleen-lezenweergave [amosyuen/ha-tplink-deco](https://github.com/amosyuen/ha-tplink-deco), [dkwolf1/ha-deco](https://github.com/dkwolf1/ha-deco) of een andere integratie die compatibele `tplink_deco`-entiteiten aanbiedt. De kaart gebruikt Deco- en clienttrackers om je mesh en verbonden apparaten weer te geven. Sensoren voor CPU, RAM, backhaul, wifi en de API verschillen per model en staan soms standaard uit.
+- Voor optioneel clientbeheer heb je `dkwolf1/ha-deco` met de bijbehorende Home Assistant-actie nodig. Blokkeren en deblokkeren kan vanaf [v4.0.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.0.0). Hernoemen kan vanaf [v4.1.0](https://github.com/dkwolf1/ha-deco/releases/tag/v4.1.0).
 - Voor de historie moeten de totale download- en uploadsensoren zijn opgenomen in Home Assistant Recorder. De live gegevens blijven ook zonder historie beschikbaar.
 
 ### Installeren
 
 #### Via Marketplace
 
-1. Ga in Home Assistant 2026.11 of nieuwer naar **Instellingen → Marketplace** en kies rechtsboven **Toevoegen via link**.
-2. Plak `https://github.com/dkwolf1/ha-tplink-card`. Koppel GitHub als Marketplace daarom vraagt en kies **Dashboard** als het type niet automatisch wordt herkend.
-3. Open **ha-tplink-card** in Marketplace en kies **Installeren**. Als je dashboardbronnen via YAML beheert, neem dan de JavaScript-module uit het installatievenster over.
-4. Vernieuw je browser en voeg **ha-tplink-card** toe via **Kaart toevoegen**.
+1. Ga in Home Assistant 2026.11 of nieuwer naar **Instellingen → Marketplace** en zoek op **ha-tplink-card**.
+2. Open de kaart en kies **Installeren**. Beheer je dashboardbronnen via YAML, neem dan de JavaScript-module uit het installatievenster over.
+3. Vernieuw je browser en voeg **ha-tplink-card** toe via **Kaart toevoegen**.
 
-Je kunt ook de [kaart rechtstreeks in Marketplace openen](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). Tot opname in de standaardcatalogus werkt dit als aangepaste repository. Gebruik bij een oudere Home Assistant-versie met HACS de [HACS-link](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin). [Home Assistant-handleiding voor Marketplace](https://www.home-assistant.io/integrations/marketplace/)
+De kaart staat in de standaardcatalogus. Je kunt de vermelding ook rechtstreeks openen. Ontbreekt de kaart in jouw Marketplace-catalogus, kies dan **Toevoegen via link** en gebruik `https://github.com/dkwolf1/ha-tplink-card`. [Marketplace-vermelding](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin) · [HACS-vermelding](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkwolf1&repository=ha-tplink-card&category=plugin) · [Marketplace-handleiding](https://www.home-assistant.io/integrations/marketplace/)
 
 #### Handmatig
 
@@ -165,7 +165,7 @@ De knoppen verschijnen alleen als Home Assistant `tplink_deco.set_client_blocked
 
 #### Een Deco-client hernoemen
 
-Hernoemen is beschikbaar vanaf kaartversie `v1.6.0`. De functie staat standaard uit en kun je los van blokkeren aanzetten. Gebruik een versie van [ha-deco](https://github.com/dkwolf1/ha-deco) die `tplink_deco.rename_client` aanbiedt. Vink **Deco-clients hernoemen toestaan** aan in de kaarteditor of gebruik:
+Hernoemen is beschikbaar vanaf kaartversie `v1.6.0`. De functie staat standaard uit en kun je los van blokkeren aanzetten. Gebruik [ha-deco v4.1.0 of nieuwer](https://github.com/dkwolf1/ha-deco/releases/tag/v4.1.0) met de actie `tplink_deco.rename_client`. Vink **Deco-clients hernoemen toestaan** aan in de kaarteditor of gebruik:
 
 ```yaml
 type: custom:tplink-deco-mesh-card
