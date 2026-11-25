@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking change for Wi-Fi preview builds
+
+- The **Wi-Fi scan and optimization** button now requires [dkwolf1/ha-deco v4.2.0-beta.1 or later](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) and compatible Wi-Fi entities for the selected mesh. The card checks the installed version through Home Assistant. Earlier versions can still display the main Deco's channel readings when available.
+
+### Added
+
+- Show the main Deco's reported Wi-Fi channels and widths on the dashboard and in the experimental Wi-Fi popup.
+- Show Deco's reported scan status, require a second manual click to optimize, and compare reported channel readings afterward.
+- Document the Wi-Fi feature and its requirements in English, Dutch, German, and French.
+
 ## 1.8.0
 
 - Add German and French throughout the dashboard card, editor, and client controls, including confirmations, errors, and accessibility labels.
