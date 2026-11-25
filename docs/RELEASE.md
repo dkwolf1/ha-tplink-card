@@ -75,7 +75,7 @@ gh pr create --repo dkwolf1/ha-tplink-card --base main --head $decoBranch --fill
 
 ## GitHub-release na groene CI
 
-Voer `npm version patch --no-git-tag-version` alleen uit wanneer je in de kaartrepo aan een volgende versie werkt. Het commando werkt de packageversie en het lockbestand bij. Pas het versienummer in de bron en documentatie aan, voeg een changelogregel toe, bouw de distributie en merge de PR. De release wordt gemaakt vanaf de gecontroleerde commit op GitHub.
+Kies de volgende versie in de kaartrepo met bijvoorbeeld `npm version 2.0.0 --no-git-tag-version`. Het commando werkt `package.json` en `package-lock.json` bij. Pas ook de bron en documentatie aan, voeg releasenotities toe aan de changelog, bouw de distributie en merge de PR. HACS haalt het versienummer uit de gepubliceerde GitHub-releasetag. [HACS-documentatie over versies](https://www.hacs.xyz/docs/publish/start/#versions)
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -111,6 +111,8 @@ try {
 ```
 
 Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home Assistant-testomgeving en installeer de kaart. Controleer dat de resource naar `/local/community/ha-tplink-card/tplink-deco-mesh-card.js` wijst, dat je de kaart kan toevoegen, dat de juiste Deco-entiteiten worden getoond en dat Recorder-historie en de editor werken. Controleer waar mogelijk mobiel en desktop. Verwijder vóór deze test een eventuele dubbele lokale resource uit het testdashboard. [Marketplace-installatie](https://www.home-assistant.io/integrations/marketplace/)
+
+Bij een release met de experimentele wifi-popup controleer je de versiegrens met dezelfde kaartbuild. Bij een oudere of onbekende integratieversie verdwijnt de knop. Met `dkwolf1/ha-deco` v4.2.0-beta.1 of nieuwer en compatibele wifi-entiteiten verschijnt hij. De actuele kanaalwaarden kunnen bij beide installaties zichtbaar zijn.
 
 ## Aanmelding voor de standaardcatalogus
 

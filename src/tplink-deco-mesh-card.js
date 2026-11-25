@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v1.8.0
+ * ha-tplink-card v2.0.0
  * Home Assistant Lovelace card for compatible tplink_deco integrations.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -35,6 +35,18 @@
   const CLIENT_NAME_MAX_BYTES = 32;
   const PREFIX = "tplink-deco-mesh";
   const CLIENT_PREVIEW_LIMIT = 12;
+  const WIFI_CONFIRM_MS = 30000;
+  const MIN_WIFI_INTEGRATION = [4, 2, 0];
+  const WIFI_BANDS = {
+    band2_4: [null, 1, 14],
+    band5: ["5 GHz", 32, 177],
+    band5_1: ["5 GHz (1)", 32, 177],
+    band5_2: ["5 GHz (2)", 32, 177],
+    band6: ["6 GHz", 1, 233],
+    band6_2: ["6 GHz (2)", 1, 233],
+  };
+  const WIFI_BUSY = new Set(["scanning", "optimizing", "confirm_optimization"]);
+  const wifiSessions = new WeakMap();
   const MESSAGES = {
     auto: ["Automatic", "Automatisch", "Automatisch", "Automatique"],
     compact: ["Compact", "Compact", "Kompakt", "Compact"],
@@ -537,6 +549,209 @@
     widgets: ["Widgets", "Widgets", "Widgets", "Widgets"],
     trafficUnit: ["kB/s", "kB/s", "kB/s", "ko/s"],
     percent: ["%", "%", " %", " %"],
+    wifiMonitor: [
+      "Wi-Fi scan and optimization",
+      "Wifi scannen en optimaliseren",
+      "WLAN-Scan und Optimierung",
+      "Analyse et optimisation du Wi-Fi",
+    ],
+    wifiCurrentChannels: [
+      "Current channels",
+      "Huidige kanalen",
+      "Aktuelle Kanäle",
+      "Canaux actuels",
+    ],
+    wifiLab: [
+      "Deco Wi-Fi · Frequency Lab",
+      "Deco Wifi · Frequentielab",
+      "Deco-WLAN · Frequenzlabor",
+      "Wi-Fi Deco · Labo des fréquences",
+    ],
+    wifiScan: [
+      "Scan Wi-Fi",
+      "Wifi scannen",
+      "WLAN scannen",
+      "Analyser le Wi-Fi",
+    ],
+    wifiOptimize: [
+      "Optimize Wi-Fi",
+      "Wifi optimaliseren",
+      "WLAN optimieren",
+      "Optimiser le Wi-Fi",
+    ],
+    wifiConfirm: [
+      "Confirm Wi-Fi optimization",
+      "Wifi-optimalisatie uitvoeren",
+      "WLAN-Optimierung ausführen",
+      "Lancer l’optimisation du Wi-Fi",
+    ],
+    wifiPanelTitle: [
+      "Reported channels",
+      "Gemelde kanalen",
+      "Gemeldete Kanäle",
+      "Canaux signalés",
+    ],
+    wifiAdvice: [
+      "Deco advice",
+      "Deco-advies",
+      "Deco-Empfehlung",
+      "Conseil Deco",
+    ],
+    wifiChannel: ["Channel", "Kanaal", "Kanal", "Canal"],
+    wifiWidth: ["Width", "Breedte", "Breite", "Largeur"],
+    wifiSchematic: [
+      "Schematic view of the reported primary channel. Width is shown in MHz.",
+      "Schematische weergave van het gemelde primaire kanaal. De breedte staat in MHz.",
+      "Schematische Darstellung des gemeldeten Primärkanals. Die Breite wird in MHz angezeigt.",
+      "Vue schématique du canal primaire signalé. La largeur est indiquée en MHz.",
+    ],
+    wifiNoBands: [
+      "Deco has not reported channel data yet.",
+      "Deco heeft nog geen kanaalgegevens gemeld.",
+      "Deco hat noch keine Kanaldaten gemeldet.",
+      "Deco n’a pas encore signalé de données de canal.",
+    ],
+    wifiUnknown: [
+      "No advice available yet.",
+      "Er is nog geen advies beschikbaar.",
+      "Es ist noch keine Empfehlung verfügbar.",
+      "Aucun conseil disponible pour le moment.",
+    ],
+    wifiUnavailable: [
+      "Wi-Fi advice is unavailable.",
+      "Het wifi-advies is niet beschikbaar.",
+      "Die WLAN-Empfehlung ist nicht verfügbar.",
+      "Le conseil Wi-Fi est indisponible.",
+    ],
+    wifiOptimal: [
+      "Deco reports optimal settings",
+      "Deco meldt optimale instellingen",
+      "Deco meldet optimale Einstellungen",
+      "Deco indique que les réglages sont optimaux",
+    ],
+    wifiRecommended: [
+      "Optimization recommended",
+      "Optimalisatie aanbevolen",
+      "Optimierung empfohlen",
+      "Optimisation recommandée",
+    ],
+    wifiScanning: [
+      "Deco is scanning",
+      "Deco is aan het scannen",
+      "Deco scannt",
+      "Deco analyse le Wi-Fi",
+    ],
+    wifiOptimizing: [
+      "Deco is optimizing",
+      "Deco optimaliseert",
+      "Deco optimiert",
+      "Deco optimise le Wi-Fi",
+    ],
+    wifiAwaiting: [
+      "Awaiting confirmation",
+      "Wacht op bevestiging",
+      "Bestätigung ausstehend",
+      "En attente de confirmation",
+    ],
+    wifiArmHint: [
+      "Wi-Fi may disconnect briefly. Confirm within 30 seconds using the same administrator account.",
+      "Wifi kan kort wegvallen. Bevestig binnen 30 seconden met hetzelfde beheerdersaccount.",
+      "Das WLAN kann kurz ausfallen. Bestätige innerhalb von 30 Sekunden mit demselben Administratorkonto.",
+      "Le Wi-Fi peut être brièvement interrompu. Confirmez dans les 30 secondes avec le même compte administrateur.",
+    ],
+    wifiOtherArm: [
+      "A confirmation is pending. Confirm from the card or Home Assistant session that started it.",
+      "Er staat een bevestiging open. Bevestig vanuit de kaart of Home Assistant-sessie waar je de actie startte.",
+      "Eine Bestätigung steht aus. Bestätige in der Karte oder Home-Assistant-Sitzung, in der du die Aktion gestartet hast.",
+      "Une confirmation est en attente. Confirmez depuis la carte ou la session Home Assistant qui a lancé l’action.",
+    ],
+    wifiExpired: [
+      "The confirmation window has expired.",
+      "De bevestigingstermijn is verstreken.",
+      "Die Bestätigungsfrist ist abgelaufen.",
+      "Le délai de confirmation est écoulé.",
+    ],
+    wifiRequest: [
+      "Sending request to Home Assistant…",
+      "Verzoek naar Home Assistant versturen…",
+      "Anfrage wird an Home Assistant gesendet …",
+      "Envoi de la demande à Home Assistant…",
+    ],
+    wifiAck: [
+      "Deco acknowledged the request.",
+      "Deco heeft het verzoek bevestigd.",
+      "Deco hat die Anfrage bestätigt.",
+      "Deco a accusé réception de la demande.",
+    ],
+    wifiObserved: [
+      "Deco reported a completed scan.",
+      "Deco heeft een voltooide scan gemeld.",
+      "Deco hat einen abgeschlossenen Scan gemeldet.",
+      "Deco a signalé une analyse terminée.",
+    ],
+    wifiNotObserved: [
+      "A completed scan was not observed. The latest available Deco advice is shown.",
+      "Een voltooide scan is niet waargenomen. Je ziet het laatst beschikbare Deco-advies.",
+      "Ein abgeschlossener Scan wurde nicht beobachtet. Die letzte verfügbare Deco-Empfehlung wird angezeigt.",
+      "Aucune analyse terminée n’a été observée. Le dernier conseil Deco disponible est affiché.",
+    ],
+    wifiAdviceChanged: [
+      "Deco reported updated advice.",
+      "Deco heeft gewijzigd advies gemeld.",
+      "Deco hat eine neue Empfehlung gemeldet.",
+      "Deco a signalé un nouveau conseil.",
+    ],
+    wifiOptimized: [
+      "Deco no longer recommends optimization.",
+      "Deco raadt geen verdere optimalisatie aan.",
+      "Deco empfiehlt keine weitere Optimierung.",
+      "Deco ne recommande plus d’optimisation.",
+    ],
+    wifiOutcomeError: [
+      "Deco could not confirm the action outcome.",
+      "Deco kon de uitkomst van de actie niet bevestigen.",
+      "Deco konnte das Ergebnis der Aktion nicht bestätigen.",
+      "Deco n’a pas pu confirmer le résultat de l’action.",
+    ],
+    wifiActionError: [
+      "Wi-Fi action failed.",
+      "Wifi-actie mislukt.",
+      "WLAN-Aktion fehlgeschlagen.",
+      "L’action Wi-Fi a échoué.",
+    ],
+    wifiBefore: ["Before", "Voor", "Vorher", "Avant"],
+    wifiAfter: ["Now", "Nu", "Jetzt", "Maintenant"],
+    wifiComparison: [
+      "Changes after optimization",
+      "Wijzigingen na optimalisatie",
+      "Änderungen nach der Optimierung",
+      "Changements après l’optimisation",
+    ],
+    wifiNoFreshValue: [
+      "No fresh value available",
+      "Geen verse waarde beschikbaar",
+      "Kein neuer Messwert verfügbar",
+      "Aucune valeur récente disponible",
+    ],
+    wifiLastReported: [
+      "Last reported",
+      "Laatst gemeld",
+      "Zuletzt gemeldet",
+      "Dernière valeur signalée",
+    ],
+    wifiSameLastReported: [
+      "Unchanged in the last reported value",
+      "Ongewijzigd volgens de laatst gemelde waarde",
+      "Laut letztem gemeldeten Wert unverändert",
+      "Inchangé d’après la dernière valeur signalée",
+    ],
+    wifiUnchanged: ["Unchanged", "Ongewijzigd", "Unverändert", "Inchangé"],
+    wifiNoBaseline: [
+      "No baseline available",
+      "Geen nulmeting beschikbaar",
+      "Kein Ausgangswert vorhanden",
+      "Aucune valeur de référence",
+    ],
   };
   function makeUi(language, locale, index) {
     const t = Object.fromEntries(
@@ -714,6 +929,47 @@
   function macOf(entry, hassState) {
     return normalize(hassState?.attributes?.mac || entry?.unique_id || "");
   }
+  function wifiTimestamp(entity) {
+    const timestamp = [
+      entity?.last_reported,
+      entity?.last_updated,
+      entity?.last_changed,
+    ]
+      .map(Date.parse)
+      .filter(Number.isFinite);
+    return timestamp.length ? Math.max(...timestamp) : null;
+  }
+  function supportsWifiMonitor(manifest) {
+    const repo = /^https:\/\/github\.com\/dkwolf1\/ha-deco(?:\/|$)/i;
+    if (
+      manifest?.domain !== DECO_DOMAIN ||
+      ![manifest.documentation, manifest.issue_tracker].some((url) =>
+        repo.test(url),
+      )
+    )
+      return false;
+    const version =
+      typeof manifest.version === "string" &&
+      /^v?(\d+)\.(\d+)\.(\d+)(?:[.-]?(alpha|beta|rc|dev|a|b)[.-]?(\d+)?)?(?:\+[\da-z.-]+)?$/i.exec(
+        manifest.version,
+      );
+    if (!version) return false;
+    for (const [index, minimum] of MIN_WIFI_INTEGRATION.entries()) {
+      const component = Number(version[index + 1]);
+      if (component !== minimum) return component > minimum;
+    }
+    const phase = version[4]?.toLowerCase();
+    return (
+      !phase ||
+      phase === "rc" ||
+      ((phase === "beta" || phase === "b") && Number(version[5]) >= 1)
+    );
+  }
+  function wifiSample(entity, value) {
+    const reading = num(value);
+    if (!Number.isInteger(reading) || reading <= 0) return null;
+    return { value: reading, at: wifiTimestamp(entity) };
+  }
   const ico = (name, size = 20) =>
     `<ha-icon icon="mdi:${esc(name)}" style="--mdc-icon-size:${size}px;width:${size}px;height:${size}px"></ha-icon>`;
 
@@ -826,6 +1082,10 @@
       this._showAllClients = false;
       this._clientActionFeedback = new Map();
       this._clientRenameDialog = null;
+      this._wifiDialog = null;
+      this._wifiTimer = null;
+      this._wifiOwner = {};
+      this._wifiManifest = null;
       this._chartTime = null;
       this._localSections = null;
       this._expanded = false;
@@ -866,6 +1126,8 @@
     disconnectedCallback() {
       this._resizeObserver?.disconnect();
       this._clientRenameDialog?.element.close();
+      this._wifiDialog?.element.close();
+      clearTimeout(this._wifiTimer);
     }
     setConfig(config) {
       if (!config || config.type !== `custom:${CARD_TYPE}`)
@@ -879,12 +1141,14 @@
       this._queueRender();
     }
     set hass(value) {
+      if (value?.connected === false) this._wifiManifest = null;
       if (
         this._hass?.connection !== value?.connection ||
         this._hass?.user?.id !== value?.user?.id
       ) {
         this._clientActionFeedback = new Map();
         this._clientRenameDialog?.element.close();
+        this._wifiDialog?.element.close();
       }
       if (this._ui !== hassUi(value)) this._clientRenameDialog?.element.close();
       this._hass = value;
@@ -1167,6 +1431,7 @@
         master,
         clients,
         wifi,
+        wifiMonitor: this._wifiMonitorData(regs, entries, nodes),
         down,
         up,
         clientCount,
@@ -1593,6 +1858,8 @@
         this._setClientBlocked(b, a === "block-client");
       } else if (a === "rename-client") {
         this._openClientRename(b);
+      } else if (a === "wifi-monitor") {
+        this._openWifiMonitor();
       } else if (a === "toggle-clients") {
         this._showAllClients = !this._showAllClients;
         this._queueRender();
@@ -1755,8 +2022,478 @@
         .join("");
       return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} ${t.clientActivity}</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>${isSingular(d.clientCount) ? t.connectedSingle : t.connectedCount}</span></div><div class="bands">${bands}</div><small class="hint">${t.clientHint}</small></section>`;
     }
-    _wifiPanel(d) {
+    async _ensureWifiManifest() {
+      const connection = this._hass?.connection;
+      if (
+        !connection?.sendMessagePromise ||
+        this._hass.connected === false ||
+        this._wifiManifest?.connection === connection
+      )
+        return;
+      const check = { connection, supported: false };
+      this._wifiManifest = check;
+      try {
+        const manifest = await connection.sendMessagePromise({
+          type: "manifest/get",
+          integration: DECO_DOMAIN,
+        });
+        check.supported = supportsWifiMonitor(manifest);
+      } catch {
+        // Channel readings remain usable if Home Assistant cannot verify the version.
+      } finally {
+        if (this._wifiManifest === check) this._queueRender();
+      }
+    }
+    _wifiMonitorData(regs, entries, nodes) {
+      const hass = this._hass;
+      const entry = entries.selected;
+      const masters = nodes.filter((node) => node.master);
+      const master = masters[0];
+      const mac = normalizeClientMac(master?.mac);
+      if (
+        !entry ||
+        entries.multiple ||
+        masters.length !== 1 ||
+        !mac ||
+        !master.deviceId ||
+        this._registryLoading ||
+        this._registryConnection !== hass?.connection
+      )
+        return null;
+
+      const registry = regs.filter(
+        (row) =>
+          row.platform === DECO_DOMAIN &&
+          row.config_entry_id === entry &&
+          row.device_id === master.deviceId &&
+          !row.disabled_by,
+      );
+      const entityId = (domain, key, deviceMac) => {
+        const suffix = normalize(key);
+        const matches = registry.filter((row) => {
+          if (!row.entity_id?.startsWith(`${domain}.`)) return false;
+          const id = normalize(row.unique_id);
+          return deviceMac
+            ? id.endsWith(suffix) &&
+                normalizeClientMac(id.slice(0, -suffix.length)) === deviceMac
+            : id === suffix;
+        });
+        return matches.length === 1 ? matches[0].entity_id : null;
+      };
+      const channels = Object.keys(WIFI_BANDS)
+        .map((band) => ({
+          band,
+          channelId: entityId("sensor", `_wifi_channel_${band}`, mac),
+          widthId: entityId("sensor", `_wifi_channel_width_${band}`, mac),
+        }))
+        .filter(({ channelId, widthId }) => channelId || widthId);
+      const adviceId = entityId("sensor", `${entry}_wifi_optimization_advice`);
+      const scan = entityId("button", `${entry}_wifi_scan`);
+      const optimize = entityId("button", `${entry}_wifi_optimize`);
+      if (!channels.length && !adviceId && !scan && !optimize) return null;
+      const available = (id) => {
+        const entity = stateVal(hass, id);
+        // A freshly registered Home Assistant button can have state "unknown".
+        return !!entity && entity.state !== "unavailable";
+      };
+      const canOpen =
+        hass.connected !== false &&
+        this._wifiManifest?.connection === hass.connection &&
+        this._wifiManifest?.supported === true;
+      const canPress =
+        canOpen &&
+        !!hass.user?.id &&
+        hass.user.is_admin === true &&
+        hass.connected !== false &&
+        !!hass.services?.button?.press &&
+        typeof hass.callService === "function";
+      return {
+        key: JSON.stringify([entry, master.id, mac, hass.user?.id]),
+        name: master.name,
+        channels,
+        bands: this._wifiReadings(channels),
+        advice: stateVal(hass, adviceId),
+        canOpen,
+        scan: canPress && available(scan) ? scan : null,
+        optimize: canPress && available(optimize) ? optimize : null,
+      };
+    }
+    _wifiReadings(channels, reported = new Map()) {
+      const state = (id) => {
+        const live = stateVal(this._hass, id);
+        const fetched = reported.get(id);
+        if (!fetched) return live;
+        return !live || wifiTimestamp(fetched) > wifiTimestamp(live)
+          ? fetched
+          : live;
+      };
+      return channels.map(({ band, channelId, widthId }) => {
+        const channel = state(channelId);
+        const width = state(widthId);
+        return {
+          band,
+          channel: wifiSample(channel, channel?.state),
+          width:
+            wifiSample(width, width?.state) ||
+            (valid(channel?.state)
+              ? wifiSample(channel, channel.attributes?.channel_width_mhz)
+              : null),
+        };
+      });
+    }
+    _wifiSession(wifi) {
+      const connection = this._hass.connection;
+      if (!wifiSessions.has(connection))
+        wifiSessions.set(connection, new Map());
+      const sessions = wifiSessions.get(connection);
+      if (!sessions.has(wifi.key)) sessions.set(wifi.key, {});
+      const session = sessions.get(wifi.key);
+      if (session.arm && Date.now() >= session.arm.deadline) {
+        session.arm = null;
+        session.expired = true;
+      }
+      if (session.arm && wifi.advice?.state === "confirm_optimization")
+        session.arm.observed = true;
+      else if (session.arm?.observed) session.arm = null;
+      if (session.optimization && wifi.advice?.state === "optimizing") {
+        session.optimization.startedAt ??= wifiTimestamp(wifi.advice);
+      }
+      return session;
+    }
+    _openWifiMonitor() {
+      const wifi = this._data().wifiMonitor;
+      if (!wifi?.canOpen || this._wifiDialog) return;
+      const element = document.createElement("dialog");
+      element.className = "wifi-lab";
+      element.setAttribute("aria-labelledby", "wifi-lab-title");
       const { t } = this._ui;
+      element.innerHTML = `<header class="wifi-lab-head">
+        <span class="wifi-lab-icon">${ico("wifi", 25)}</span>
+        <div><small>${t.wifiLab}</small><h2 id="wifi-lab-title"></h2><p></p></div>
+        <button type="button" class="tiny-btn wifi-lab-close" data-wifi="close" autofocus aria-label="${t.close}">✕</button>
+      </header><div class="wifi-lab-body"></div><div class="wifi-announcement" role="status"></div>`;
+      const dialog = { element, key: wifi.key };
+      this._wifiDialog = dialog;
+      this.shadowRoot.append(element);
+      element.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-wifi]")?.dataset.wifi;
+        if (action === "close") element.close();
+        else if (action) this._pressWifi(action, dialog.key);
+      });
+      element.addEventListener("close", () => {
+        element.remove();
+        if (this._wifiDialog !== dialog) return;
+        this._wifiDialog = null;
+        const button = this.shadowRoot.querySelector(
+          '[data-action="wifi-monitor"]',
+        );
+        button?.focus({ preventScroll: true });
+      });
+      this._renderWifiMonitor(wifi);
+      element.showModal();
+    }
+    async _pressWifi(action, key) {
+      const wifi = this._data().wifiMonitor;
+      if (!wifi || wifi.key !== key) return;
+      const session = this._wifiSession(wifi);
+      if (session.pending) return;
+      const state = wifi.advice?.state;
+      const scan =
+        action === "scan" &&
+        wifi.scan &&
+        state !== "unavailable" &&
+        !WIFI_BUSY.has(state) &&
+        !session.arm;
+      const arm =
+        action === "optimize" &&
+        wifi.optimize &&
+        state === "optimizable" &&
+        !session.arm;
+      const confirm =
+        action === "confirm" &&
+        wifi.optimize &&
+        state === "confirm_optimization" &&
+        session.arm?.observed;
+      if (!scan && !arm && !confirm) return;
+
+      if (scan) {
+        session.baseline = wifi.bands;
+        session.optimization = null;
+      } else if (arm) {
+        session.baseline ??= wifi.bands;
+        session.arm = {
+          deadline: Date.now() + WIFI_CONFIRM_MS,
+          observed: false,
+          owner: this._wifiOwner,
+        };
+        clearTimeout(this._wifiTimer);
+        this._wifiTimer = setTimeout(
+          () => this._queueRender(),
+          WIFI_CONFIRM_MS,
+        );
+      } else {
+        if (session.arm.owner !== this._wifiOwner) return;
+        session.arm = null;
+        session.optimization = {
+          beforePress: wifi.bands,
+          clickedAt: Date.now(),
+          advice: wifi.advice,
+          success: false,
+        };
+      }
+      session.error = null;
+      session.expired = false;
+      session.previousAdvice = wifi.advice;
+      session.pending = true;
+      this._queueRender();
+      const hass = this._hass;
+      try {
+        await hass.callService(
+          "button",
+          "press",
+          {},
+          { entity_id: scan ? wifi.scan : wifi.optimize },
+          false,
+        );
+        if (confirm) {
+          session.optimization.success = true;
+          // Read the known sensor states once so unchanged values can include last_reported.
+          if (
+            typeof hass.callApi === "function" &&
+            this._hass?.connection === hass.connection &&
+            this._hass?.user?.id === hass.user.id
+          ) {
+            const ids = new Set(
+              wifi.channels
+                .flatMap(({ channelId, widthId }) => [channelId, widthId])
+                .filter(Boolean),
+            );
+            const states = await Promise.allSettled(
+              [...ids].map(async (id) => [
+                id,
+                await hass.callApi("GET", `states/${encodeURIComponent(id)}`),
+              ]),
+            );
+            session.optimization.reported = new Map(
+              states.flatMap((item) =>
+                item.status === "fulfilled" ? [item.value] : [],
+              ),
+            );
+          }
+        }
+      } catch (error) {
+        if (arm) session.arm = null;
+        if (confirm) session.optimization = null;
+        session.error = error?.message || error?.error?.message || true;
+      } finally {
+        session.pending = null;
+        this._queueRender();
+      }
+    }
+    _renderWifiMonitor(wifi) {
+      const dialog = this._wifiDialog;
+      if (!dialog) return;
+      if (!wifi?.canOpen || wifi.key !== dialog.key) {
+        dialog.element.close();
+        return;
+      }
+      const { t, language } = this._ui;
+      const session = this._wifiSession(wifi);
+      const state = wifi.advice?.state;
+      const scanning = state === "scanning";
+      const optimizing = state === "optimizing";
+      const animate = scanning || optimizing;
+      const notes = {
+        scan_observed: t.wifiObserved,
+        scan_not_observed: t.wifiNotObserved,
+        advice_changed: t.wifiAdviceChanged,
+        advice_cleared: t.wifiOptimized,
+        not_started: t.wifiOutcomeError,
+        rejected: t.wifiOutcomeError,
+        unconfirmed: t.wifiOutcomeError,
+        request_failed: t.wifiOutcomeError,
+      };
+      const titles = {
+        scanning: t.wifiScanning,
+        optimizing: t.wifiOptimizing,
+        confirm_optimization: t.wifiAwaiting,
+        optimal: t.wifiOptimal,
+        optimizable: t.wifiRecommended,
+        unavailable: t.wifiUnavailable,
+      };
+      const attrs = wifi.advice?.attributes;
+      const freshAdvice =
+        !WIFI_BUSY.has(state) &&
+        state !== "unavailable" &&
+        session.previousAdvice !== wifi.advice;
+      const outcome =
+        freshAdvice && Object.hasOwn(notes, attrs?.outcome)
+          ? notes[attrs.outcome]
+          : "";
+      const canConfirm =
+        state === "confirm_optimization" &&
+        session.arm?.observed &&
+        session.arm.owner === this._wifiOwner &&
+        wifi.optimize;
+      const confirmHint =
+        state === "confirm_optimization"
+          ? canConfirm
+            ? t.wifiArmHint
+            : session.expired
+              ? t.wifiExpired
+              : t.wifiOtherArm
+          : "";
+      const opt = session.optimization;
+      const compares =
+        opt?.success &&
+        state === "optimal" &&
+        wifi.advice !== opt.advice &&
+        attrs?.outcome === "advice_cleared";
+      const bands = compares
+        ? this._wifiReadings(wifi.channels, opt.reported)
+        : wifi.bands;
+      const visible = bands.filter(
+        ({ channel, width, band }) =>
+          channel ||
+          width ||
+          (compares &&
+            session.baseline?.some(
+              (row) => row.band === band && (row.channel || row.width),
+            )),
+      );
+      const bandMarkup = visible
+        .map((row) => this._wifiBandMarkup(row, session, compares, animate))
+        .join("");
+      const error = session.error
+        ? `<p class="wifi-error" role="alert">${t.wifiActionError} ${typeof session.error === "string" ? esc(session.error) : ""}</p>`
+        : "";
+      const scan =
+        wifi.scan &&
+        state !== "unavailable" &&
+        !WIFI_BUSY.has(state) &&
+        !session.arm;
+      const optimize = wifi.optimize && state === "optimizable" && !session.arm;
+      const disabled = session.pending ? "disabled" : "";
+      const label = Object.hasOwn(titles, state)
+        ? titles[state]
+        : t.wifiUnknown;
+      const request =
+        session.pending && !WIFI_BUSY.has(state) && !freshAdvice
+          ? t.wifiRequest
+          : "";
+      const acknowledged =
+        freshAdvice && attrs?.acknowledged === true ? t.wifiAck : "";
+      const markup = `<div class="wifi-lab-grid"><section class="wifi-lab-section">
+        <h3>${compares ? t.wifiComparison : t.wifiPanelTitle}</h3>
+        ${bandMarkup || `<p>${t.wifiNoBands}</p>${animate ? '<div class="wifi-ruler wifi-scan-placeholder" aria-hidden="true"><i class="wifi-sweep"></i></div>' : ""}`}
+        ${bandMarkup ? `<p class="wifi-schematic">${t.wifiSchematic}</p>` : ""}
+      </section><section class="wifi-lab-section wifi-advice"><h3>${t.wifiAdvice}</h3>
+        <div class="wifi-advice-ring" data-state="${esc(state)}" aria-hidden="true">${ico(optimizing ? "wifi-cog" : scanning ? "wifi-sync" : "wifi", 27)}</div>
+        <div><strong>${label}</strong>
+        ${request ? `<p>${request}</p>` : ""}
+        ${outcome ? `<p>${outcome}</p>` : ""}
+        ${acknowledged ? `<p>${acknowledged}</p>` : ""}
+        ${confirmHint ? `<p class="wifi-warning">${confirmHint}</p>` : ""}</div>
+        ${error}
+      </section></div>
+      ${
+        scan || optimize || canConfirm
+          ? `<footer class="wifi-lab-actions">
+        ${scan ? `<button type="button" class="tiny-btn" data-wifi="scan" ${disabled}>${t.wifiScan}</button>` : ""}
+        ${optimize ? `<button type="button" class="tiny-btn wifi-primary" data-wifi="optimize" ${disabled}>${t.wifiOptimize}</button>` : ""}
+        ${canConfirm ? `<button type="button" class="tiny-btn wifi-primary" data-wifi="confirm" ${disabled}>${t.wifiConfirm}</button>` : ""}
+      </footer>`
+          : ""
+      }`;
+      const element = dialog.element;
+      element.lang = language;
+      element.dataset.operation = animate ? state : "";
+      element.querySelector("header small").textContent = t.wifiLab;
+      element.querySelector("header h2").textContent = t.wifiMonitor;
+      element.querySelector("header p").textContent = wifi.name;
+      const close = element.querySelector(".wifi-lab-close");
+      close.setAttribute("aria-label", t.close);
+      const announcement = element.querySelector(".wifi-announcement");
+      const spoken = [label, request, outcome, acknowledged, confirmHint]
+        .filter(Boolean)
+        .join(" ");
+      if (announcement.textContent !== spoken)
+        announcement.textContent = spoken;
+      if (dialog.markup !== markup) {
+        dialog.markup = markup;
+        const focused = this.shadowRoot.activeElement?.dataset.wifi;
+        element.querySelector(".wifi-lab-body").innerHTML = markup;
+        if (focused && focused !== "close") {
+          const next = element.querySelector(
+            `[data-wifi="${focused}"]:not([disabled])`,
+          );
+          (next || close).focus({ preventScroll: true });
+        }
+      }
+    }
+    _wifiBandMarkup(row, session, compares, animate) {
+      const { t, number } = this._ui;
+      const { band, channel, width } = row;
+      const [name, start, end] = WIFI_BANDS[band];
+      const label = name || t.band24;
+      const position =
+        channel && (100 * (channel.value - start)) / (end - start);
+      const measure = (sample, kind) =>
+        sample
+          ? `${number.format(sample.value)}${kind === "width" ? " MHz" : ""}`
+          : "—";
+      const prior = session.baseline?.find((item) => item.band === band);
+      const beforePress = session.optimization?.beforePress.find(
+        (item) => item.band === band,
+      );
+      const comparison = (kind, heading) => {
+        const prev = prior?.[kind];
+        const sample = row[kind];
+        if (!prev && !sample) return "";
+        const initiation =
+          session.optimization.startedAt ?? session.optimization.clickedAt;
+        const cutoff = Math.max(initiation, beforePress?.[kind]?.at ?? 0);
+        const fresh = sample?.at != null && sample.at > cutoff;
+        const same = !!prev && prev.value === sample?.value;
+        const result = fresh
+          ? !prev
+            ? t.wifiNoBaseline
+            : same
+              ? t.wifiUnchanged
+              : `${measure(prev, kind)} → ${measure(sample, kind)}`
+          : same
+            ? t.wifiSameLastReported
+            : t.wifiNoFreshValue;
+        const after = !fresh && sample ? t.wifiLastReported : t.wifiAfter;
+        return `<div><dt>${heading}</dt><dd>${t.wifiBefore} ${measure(prev, kind)} · ${after} ${measure(sample, kind)}<small>${result}</small></dd></div>`;
+      };
+      return `<article class="wifi-lab-band" data-band="${band}">
+        <header><h4>${label}</h4><span>${t.wifiChannel} <b>${measure(channel, "channel")}</b> · ${t.wifiWidth} <b>${measure(width, "width")}</b></span></header>
+        <div class="wifi-ruler" aria-hidden="true">${animate ? '<i class="wifi-sweep"></i>' : ""}
+          ${channel && position >= 0 && position <= 100 ? `<i class="wifi-marker" style="--channel-position:${position}%"></i>` : ""}
+        </div><div class="wifi-axis" aria-hidden="true"><span>${start}</span><span>${end}</span></div>
+        ${compares ? `<dl class="wifi-band-comparison">${comparison("channel", t.wifiChannel)}${comparison("width", t.wifiWidth)}</dl>` : ""}
+      </article>`;
+    }
+    _wifiPanel(d) {
+      const { t, number } = this._ui;
+      const monitor = d.wifiMonitor;
+      if (monitor) this._ensureWifiManifest();
+      if (monitor?.canOpen) this._wifiSession(monitor);
+      const channels = (monitor?.bands || [])
+        .filter(({ channel, width }) => channel || width)
+        .map(({ band, channel, width }) => {
+          const label = WIFI_BANDS[band][0] || t.band24;
+          const readings = [
+            channel && `${t.wifiChannel} ${number.format(channel.value)}`,
+            width &&
+              `${channel ? "" : `${t.wifiWidth} `}${number.format(width.value)} MHz`,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          return `<div data-band="${band}"><dt>${label}</dt><dd>${readings}</dd></div>`;
+        })
+        .join("");
       const names = {
         main: t.primaryNetwork,
         guest: t.guestNetwork,
@@ -1769,7 +2506,19 @@
           const e = d.wifi[k];
           return `<div class="wifi-row"><span>${ico("wifi", 18)}<span><b>${esc(names[k])}</b>${e.ssid ? `<small>${esc(e.ssid)}</small>` : ""}</span></span>${this._statusPill(e.on, t.on, t.off)}</div>`;
         })
-        .join("")}</div><small class="hint">${t.wifiHint}</small></section>`;
+        .join("")}</div>${
+        channels
+          ? `<div class="wifi-channel-summary">
+          <h4>${t.wifiCurrentChannels}</h4><dl>${channels}</dl>
+        </div>`
+          : ""
+      }<small class="hint">${t.wifiHint}</small>${
+        monitor?.canOpen
+          ? `<div class="wifi-monitor-links">
+          <button type="button" class="tiny-btn" data-action="wifi-monitor" aria-haspopup="dialog">${t.wifiMonitor}</button>
+        </div>`
+          : ""
+      }</section>`;
     }
     _apiPanel(d) {
       const { t, duration, timeLabel } = this._ui;
@@ -1829,6 +2578,7 @@
       if (!this._hass) return;
       const { t, field, duration, timeLabel } = this._ui;
       const d = this._data();
+      this._renderWifiMonitor(d.wifiMonitor);
       const clientTargets = this._clientActionTargets(d);
       const renameDialog = this._clientRenameDialog;
       if (
@@ -1960,6 +2710,61 @@
     .client-rename-dialog p:empty{display:none}
     .client-rename-error{color:#ffad9d}
     .client-rename-dialog .client-control-actions{justify-content:flex-end}
+    .wifi-monitor-links,.wifi-lab-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .wifi-channel-summary{margin-top:10px;padding-top:9px;border-top:1px solid #29808c40}
+    .wifi-channel-summary h4{margin:0 0 5px;font-size:12px}
+    .wifi-channel-summary dl{display:grid;gap:4px;margin:0;font-size:11px}
+    .wifi-channel-summary dl>div{display:flex;justify-content:space-between;flex-wrap:wrap;column-gap:8px;row-gap:2px}
+    .wifi-channel-summary dt{color:#b0ccd7}
+    .wifi-channel-summary dd{margin:0;text-align:right;font-weight:650}
+    .wifi-monitor-links button{text-align:start;max-width:100%;overflow-wrap:anywhere}
+    .wifi-lab{width:min(940px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;padding:clamp(14px,3vw,24px);color:#eaf6ff;background:radial-gradient(ellipse at 40% 0%,#123d49,#091e2d 70%);border:1px solid #2b6976;border-radius:20px;box-shadow:0 20px 65px #031319d9}
+    .wifi-lab::backdrop{background:#031119c9}
+    .wifi-announcement{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .wifi-lab-head{display:flex;align-items:center;gap:12px;margin-bottom:17px}
+    .wifi-lab-head>div{flex:1;min-width:0}
+    .wifi-lab-icon{display:grid;place-items:center;flex:none;width:44px;height:44px;color:#8afbe5;background:#14515a;border:1px solid #34848a;border-radius:12px}
+    .wifi-lab-head small{color:#77e4d4;font-size:11px}
+    .wifi-lab-head h2{margin:2px 0;font-size:clamp(18px,4vw,24px)}
+    .wifi-lab-head p{margin:2px 0;color:#b0ccd7;overflow-wrap:anywhere}
+    .wifi-lab-close{align-self:flex-start}
+    .wifi-lab-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+    .wifi-lab-section{min-width:0;padding:clamp(12px,2vw,18px);border:1px solid #28616e;border-radius:14px;background:#102f3d9c;overflow-wrap:anywhere}
+    .wifi-lab-section h3{margin:0 0 12px;font-size:15px}
+    .wifi-lab-section p{margin:10px 0 0;color:#c3dbe4;font-size:13px}
+    .wifi-lab-band+.wifi-lab-band{margin-top:16px}
+    .wifi-lab-band header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+    .wifi-lab-band h4{margin:0;font-size:14px}
+    .wifi-lab-band header span{color:#aed6e0;font-size:12px}
+    .wifi-lab-band header b{color:#eaf6ff}
+    .wifi-ruler{position:relative;height:72px;overflow:hidden;border:1px solid #275867;border-radius:8px;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),#64b6bb32 calc(10% - 1px) 10%),repeating-linear-gradient(0deg,transparent 0 23px,#65b5bd21 23px 24px),linear-gradient(0deg,#071c2a,#092c39)}
+    .wifi-marker,.wifi-sweep{position:absolute;top:0;bottom:0;width:2px}
+    .wifi-marker{left:clamp(0px,var(--channel-position),calc(100% - 2px));background:repeating-linear-gradient(180deg,#b9fff0 0 6px,transparent 6px 10px);filter:drop-shadow(0 0 4px #56e1d8)}
+    .wifi-scan-placeholder{margin-top:12px}
+    .wifi-sweep{left:0;width:100%;background:linear-gradient(90deg,transparent 30%,#43e7d842 48%,#b4fff6 50%,#43e7d823 51%,transparent 60%);animation:wifi-sweep 2s linear infinite}
+    .wifi-lab[data-operation="optimizing"] .wifi-sweep{background:linear-gradient(90deg,transparent 30%,#ffd38c33 48%,#ffe1ac 50%,#ffd38c28 51%,transparent 60%);animation-direction:reverse}
+    @keyframes wifi-sweep{from{transform:translateX(-62%)}to{transform:translateX(62%)}}
+    .wifi-axis{display:flex;justify-content:space-between;color:#9bbdca;font-size:10px;margin-top:4px}
+    .wifi-lab-section .wifi-schematic{font-size:11px;color:#a8c8d4}
+    .wifi-advice-ring{display:grid;place-items:center;margin:7px auto 14px;width:66px;height:66px;border-radius:50%;border:4px solid #2a6472;color:#8dede4}
+    .wifi-advice-ring[data-state="scanning"],.wifi-advice-ring[data-state="optimizing"]{border-color:#59aeb0;color:#b0fff7;box-shadow:0 0 16px #55e3d637}
+    .wifi-advice-ring:is([data-state="scanning"],[data-state="optimizing"]){position:relative}
+    .wifi-advice-ring:is([data-state="scanning"],[data-state="optimizing"])::after{content:"";position:absolute;inset:-4px;border:3px solid transparent;border-top-color:#a2fff0;border-radius:50%;animation:wifi-ring 1.15s linear infinite}
+    .wifi-advice-ring[data-state="optimizing"]::after{border-top-color:#ffd38c;animation-direction:reverse}
+    @keyframes wifi-ring{to{transform:rotate(1turn)}}
+    .wifi-advice-ring[data-state="optimizable"],.wifi-advice-ring[data-state="confirm_optimization"]{border-color:#9d7940;color:#ffd38c}
+    .wifi-advice .wifi-warning{color:#ffdb96}
+    .wifi-advice .wifi-error{color:#ffaaa1}
+    .wifi-lab-actions{justify-content:flex-end}
+    .wifi-primary{background:#12615f;border-color:#439d96}
+    .wifi-lab button:disabled,.wifi-monitor-links button:disabled{opacity:.55;cursor:default}
+    .wifi-lab button:focus-visible,.wifi-monitor-links button:focus-visible{outline:2px solid #b7fff6;outline-offset:2px}
+    .wifi-band-comparison{display:grid;gap:6px;margin:10px 0 0;font-size:12px}
+    .wifi-band-comparison div{display:grid;grid-template-columns:minmax(68px,1fr) 2fr;gap:8px;padding-top:6px;border-top:1px solid #2e606a}
+    .wifi-band-comparison dd{margin:0}
+    .wifi-band-comparison small{display:block;color:#9fd5d1}
+    @media(max-width:620px){.wifi-lab-grid{grid-template-columns:1fr}.wifi-ruler{height:52px}.wifi-advice-ring{margin:0 0 10px;width:44px;height:44px}}
+    @media(prefers-reduced-motion:reduce){.wifi-sweep,.wifi-advice-ring:is([data-state="scanning"],[data-state="optimizing"])::after{display:none;animation:none}}
     .mesh-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:12px}
     .mesh-columns>div{display:grid;gap:10px;min-width:0}
     .mesh-columns .topology,.mesh-columns .detail-panel,.mesh-columns .health-strip{margin:0}
@@ -2085,5 +2890,5 @@
       },
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v1.8.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v2.0.0 `, "background:#008a80;color:white;");
 })();

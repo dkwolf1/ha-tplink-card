@@ -2,6 +2,8 @@
 
 [English](#english) · [Nederlands](#nederlands) · [Wide layout](#make-the-card-wider) · [Brede weergave](#maak-de-kaart-breder)
 
+[WLAN auf Deutsch](#wlan-auf-deutsch) · [Wi-Fi en français](#wi-fi-en-français)
+
 ![Wide layout with four fictional Deco units, a traffic chart, and diagnostics](docs/screenshots/desktop.png)
 
 [Mobile screenshot / Mobiele screenshot](docs/screenshots/mobile.png)
@@ -30,7 +32,7 @@ The card is in the default catalog. You can also open its listing directly. If i
 #### Manual installation
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) from the latest release and copy it to `/config/www/tplink-deco-mesh-card.js`. Restart Home Assistant once if you just created the `www` folder.
-2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=1.8.0` as a **JavaScript module**. For a later release, use that release's version number.
+2. Under **Settings → Dashboards → ⋮ → Resources**, add `/local/tplink-deco-mesh-card.js?v=2.0.0` as a **JavaScript module**. For a later release, use that release's version number.
 3. Reload the browser and add **ha-tplink-card** from the card picker.
 
 The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-tplink-card/releases/latest) and under [`dist/`](dist/tplink-deco-mesh-card.js) in the repository. Keep one dashboard resource for the card. When switching from a manual test installation to Marketplace, remove the old resource and keep your card configuration. [Register dashboard resources](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -74,6 +76,19 @@ Keep **Clients** visible. With multiple meshes, choose **Mesh installation** in 
 This updates the name on the Deco and preserves the Home Assistant entity ID. The card shows any error and reflects the new name when Home Assistant next reports it.
 
 ![English client rename dialog with an example name and a confirmation button](docs/screenshots/client-rename-en.png)
+
+### Wi-Fi channels and experimental optimization
+
+**Breaking change for Wi-Fi preview builds in v2.0.0.** Upgrade the integration if your test build showed the popup with an older version.
+
+The **Wi-Fi networks** panel shows the main Deco’s current channels and widths when reported. The **Wi-Fi scan and optimization** button requires [dkwolf1/ha-deco v4.2.0-beta.1 or later](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) and compatible Wi-Fi entities for the selected main Deco. The card checks the installed version reported by Home Assistant. Current channels remain visible on earlier versions that report them.
+
+Enable the experimental feature and configure the SSH host fingerprint in the integration. Home Assistant administrators can then use the available actions. For multiple meshes, select the relevant **Mesh installation** in the card editor.
+
+- Open **Wi-Fi scan and optimization** to see the monitor. Inside, **Scan Wi-Fi** records the current readings and sends one scan request. The schematic animation follows the advice sensor, even while channel readings are unavailable. The card shows the request acknowledgement and scan outcome separately.
+- **Optimize Wi-Fi** appears when Deco recommends it. The first press requests confirmation. Choose **Confirm Wi-Fi optimization** within 30 seconds from the same administrator account. Wi-Fi may briefly disconnect. The schematic animation follows Deco during optimization. Afterward the card compares the available readings. When a fresh report is unavailable, it labels the last reported value and shows whether that value matches the baseline.
+
+Scan and optimization were validated with a Deco X50 hardware 1.0 running firmware 1.11.1 Build 26081714 Rel. 32981. Channel diagnostics and actions depend on your firmware and enabled entities.
 
 ### Make the card wider
 
@@ -133,7 +148,7 @@ De kaart staat in de standaardcatalogus. Je kunt de vermelding ook rechtstreeks 
 #### Handmatig
 
 1. Download [`tplink-deco-mesh-card.js`](https://github.com/dkwolf1/ha-tplink-card/releases/latest/download/tplink-deco-mesh-card.js) uit de nieuwste release en kopieer het naar `/config/www/tplink-deco-mesh-card.js`. Herstart Home Assistant één keer als je de map `www` net hebt aangemaakt.
-2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=1.8.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
+2. Voeg onder **Instellingen → Dashboards → ⋮ → Bronnen** de URL `/local/tplink-deco-mesh-card.js?v=2.0.0` toe als **JavaScript-module**. Gebruik bij een volgende release het versienummer van die release.
 3. Vernieuw je browser en voeg **ha-tplink-card** toe via de kaartkiezer.
 
 Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com/dkwolf1/ha-tplink-card/releases/latest) en staat in de repo onder [`dist/`](dist/tplink-deco-mesh-card.js). Gebruik één dashboardbron. Als je overstapt van een handmatige testversie naar Marketplace, verwijder dan de oude bron en behoud je bestaande kaartconfiguratie. [Dashboardbronnen registreren](https://contributors.home-assistant.io/frontend/custom-ui/resources/)
@@ -176,6 +191,19 @@ Laat **Clients** zichtbaar. Kies bij meerdere meshes **Mesh-installatie** in de 
 
 De naam wijzigt op de Deco en de Home Assistant-entiteits-ID blijft gelijk. De kaart toont een eventuele fout en geeft de nieuwe naam weer zodra Home Assistant die doorgeeft. [Bekijk het hernoemvenster](docs/screenshots/client-rename.png)
 
+### Wifi-kanalen en experimentele optimalisatie
+
+**Breaking change voor wifi-testbuilds in v2.0.0.** Werk de integratie bij als je testbuild de popup bij een oudere versie toonde.
+
+In **WiFi-netwerken** zie je de huidige kanalen en breedtes die de hoofd-Deco rapporteert. De knop **Wifi scannen en optimaliseren** vereist [dkwolf1/ha-deco v4.2.0-beta.1 of nieuwer](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) en compatibele wifi-entiteiten voor de gekozen hoofd-Deco. De kaart controleert de geïnstalleerde versie die Home Assistant meldt. Huidige kanalen blijven ook zichtbaar op oudere versies die deze waarden rapporteren.
+
+Schakel de experimentele functie in en stel de SSH-vingerafdruk in bij de integratie. Daarna kunnen Home Assistant-beheerders de beschikbare acties gebruiken. Kies bij meerdere meshes de juiste **Mesh-installatie** in de kaarteditor.
+
+- Open **Wifi scannen en optimaliseren** om de monitor te bekijken. In de popup legt **Wifi scannen** de huidige waarden vast en stuurt het één scanverzoek. De schematische animatie volgt de adviessensor, ook als kanaalwaarden nog ontbreken. De kaart toont de ontvangstbevestiging en de scanuitkomst afzonderlijk.
+- **Wifi optimaliseren** verschijnt zodra Deco dit aanbeveelt. De eerste klik vraagt om bevestiging. Kies binnen 30 seconden **Wifi-optimalisatie uitvoeren** met hetzelfde beheerdersaccount. Wifi kan kort wegvallen. Tijdens de optimalisatie volgt de schematische animatie de Deco-status. Daarna vergelijkt de kaart de beschikbare waarden. Als een vers rapport ontbreekt, toont de kaart de laatst gemelde waarde en geeft ze aan of die overeenkomt met de nulmeting.
+
+Scannen en optimaliseren zijn gevalideerd op een Deco X50 hardware 1.0 met firmware 1.11.1 Build 26081714 Rel. 32981. Kanaaldiagnostiek en acties hangen af van de firmware en de ingeschakelde entiteiten.
+
 ### Maak de kaart breder
 
 Voeg **ha-tplink-card** toe via de kaartkiezer en laat **Formaat** op **Automatisch** staan. Op een dashboard met secties vult de kaart standaard de hele sectie en past de hoogte zich aan de inhoud aan. Vanaf 800 px kaartbreedte staan topologie en diagnose naast elkaar. Bij minder ruimte staan ze onder elkaar.
@@ -209,6 +237,30 @@ Met `column_span: 3` gebruikt die sectie drie kolommen zodra het scherm daar rui
 ### Lokale demo
 
 Start `npm run demo` vanuit deze repo en open [de lokale demo](http://127.0.0.1:4173/demo/). Node.js 24 volstaat voor de demo. Alle voorbeeldwaarden zijn fictief.
+
+## WLAN auf Deutsch
+
+**Inkompatible Änderung für WLAN-Testbuilds ab v2.0.0.** Die Schaltfläche **WLAN-Scan und Optimierung** setzt [dkwolf1/ha-deco v4.2.0-beta.1 oder neuer](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) und kompatible WLAN-Entitäten des gewählten Mesh-Netzes voraus. Die Karte prüft die von Home Assistant gemeldete installierte Version. Ältere Versionen können weiterhin aktuelle Kanäle und Kanalbreiten anzeigen, sofern sie diese Werte melden.
+
+Aktiviere die experimentelle Funktion in der Integration und hinterlege dort den SSH-Hostschlüssel-Fingerabdruck. Die verfügbaren Aktionen können nur mit einem Home-Assistant-Administratorkonto ausgeführt werden. Wähle bei mehreren Mesh-Netzen im Karteneditor die passende **Mesh-Installation** aus.
+
+1. Öffne **WLAN-Scan und Optimierung**. Mit **WLAN scannen** speicherst du die Ausgangswerte und startest eine einzelne Scan-Anfrage. Die schematische Animation folgt dem Deco-Status. Die Empfangsbestätigung und das Scan-Ergebnis werden getrennt angezeigt.
+2. Wenn Deco eine Optimierung empfiehlt, klicke auf **WLAN optimieren**. Klicke innerhalb von 30 Sekunden mit demselben Administratorkonto auf **WLAN-Optimierung ausführen**. Die WLAN-Verbindung kann kurz ausfallen.
+3. Vergleiche die gemeldeten Werte pro Frequenzband. Ist kein neuer Messwert verfügbar, kennzeichnet die Karte den zuletzt gemeldeten Wert.
+
+Scan und Optimierung wurden mit einem Deco X50, Hardwareversion 1.0 und Firmware 1.11.1 Build 26081714 Rel. 32981, getestet.
+
+## Wi-Fi en français
+
+**Modification incompatible avec les versions de test du Wi-Fi à partir de la v2.0.0.** Le bouton **Analyse et optimisation du Wi-Fi** nécessite [dkwolf1/ha-deco v4.2.0-beta.1 ou ultérieure](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) et des entités Wi-Fi compatibles pour le réseau maillé sélectionné. La carte vérifie la version installée indiquée par Home Assistant. Les versions antérieures peuvent toujours afficher les canaux et leurs largeurs lorsqu’elles les signalent.
+
+Activez la fonction expérimentale dans l’intégration et configurez l’empreinte de la clé d’hôte SSH au même endroit. Les actions disponibles nécessitent un compte administrateur Home Assistant. Si vous avez plusieurs réseaux maillés, sélectionnez l’**Installation Deco** voulue dans l’éditeur de carte.
+
+1. Ouvrez **Analyse et optimisation du Wi-Fi**. Sélectionnez **Analyser le Wi-Fi** pour enregistrer les valeurs de référence et envoyer une seule demande d’analyse. L’animation schématique suit l’état du Deco. La carte affiche séparément l’accusé de réception et le résultat de l’analyse.
+2. Lorsque Deco recommande une optimisation, sélectionnez **Optimiser le Wi-Fi**, puis **Lancer l’optimisation du Wi-Fi** dans les 30 secondes avec le même compte administrateur. La connexion Wi-Fi peut être brièvement interrompue.
+3. Comparez les valeurs signalées pour chaque bande. Si aucune valeur récente n’est disponible, la carte indique la dernière valeur signalée.
+
+L’analyse et l’optimisation ont été testées sur un Deco X50, version matérielle 1.0, avec le micrologiciel 1.11.1 Build 26081714 Rel. 32981.
 
 ## Development and releases
 
