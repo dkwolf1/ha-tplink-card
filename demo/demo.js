@@ -28,10 +28,10 @@ customElements.define("ha-icon", DemoIcon);
 const states = {},
   registry = [];
 const macs = [
-  "11:22:33:44:00:01",
-  "11:22:33:44:00:02",
-  "11:22:33:44:00:03",
-  "11:22:33:44:00:04",
+  "02:22:33:44:00:01",
+  "02:22:33:44:00:02",
+  "02:22:33:44:00:03",
+  "02:22:33:44:00:04",
 ];
 function add(domain, id, uid, deviceId, state, attrs = {}) {
   const eid = `${domain}.${id}`;

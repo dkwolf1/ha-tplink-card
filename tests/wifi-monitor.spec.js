@@ -31,6 +31,30 @@ async function setup(page, options = {}) {
         master: true,
         friendly_name: name,
       });
+      if (options.networkSwitches) {
+        add(
+          name,
+          device,
+          `switch.${name}_guest_control`,
+          `${mac}_wifi_guest_switch`,
+          "off",
+        );
+        add(
+          name,
+          device,
+          `switch.${name}_iot_control`,
+          `${mac}_wifi_iot_switch`,
+          "on",
+        );
+        add(
+          name,
+          device,
+          `binary_sensor.${name}_iot_status`,
+          `${mac}_wifi_iot`,
+          "off",
+          { ssid: "IoT test" },
+        );
+      }
       if (options.legacy) return;
       const sensorMac = mac.replaceAll(":", "-");
       add(
@@ -92,7 +116,10 @@ async function setup(page, options = {}) {
       language: "en",
       states,
       user: { id: "first-admin", is_admin: options.admin !== false },
-      services: { button: { press: {} } },
+      services: {
+        button: { press: {} },
+        switch: { turn_on: {}, turn_off: {} },
+      },
       connection: {
         async sendMessagePromise(message) {
           if (message.type !== "manifest/get") return registry;
@@ -105,7 +132,7 @@ async function setup(page, options = {}) {
             documentation:
               options.documentation ?? "https://github.com/dkwolf1/ha-deco",
             version:
-              options.version === undefined ? "4.2.0-beta.1" : options.version,
+              options.version === undefined ? "4.2.0-beta.2" : options.version,
           };
         },
       },
@@ -159,14 +186,71 @@ async function update(page, id, state, attributes = {}, fresh = true) {
 
 const presses = (page) => page.evaluate(() => globalThis.wifiFixture.calls);
 
-test("exposes the Wi-Fi popup only for a verified ha-deco version meeting the minimum", async ({
+test("switches guest and IoT networks only on the selected mesh and follows reported states", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const options = { multiple: true, networkSwitches: true, wait: true };
+  await setup(page, options);
+  await expect(card(page).getByRole("switch")).toHaveCount(0);
+  await setup(page, { ...options, select: "mesh_b" });
+  const guest = card(page).getByRole("switch", { name: "Guest network" });
+  const iot = card(page).getByRole("switch", { name: "IoT network" });
+  await expect(guest).not.toBeChecked();
+  await expect(iot).toBeChecked();
+  await guest.press("Space");
+  await expect(guest).toHaveAttribute("aria-busy", "true");
+  await expect(guest).toBeFocused();
+  await guest.press("Space");
+  expect(await presses(page)).toEqual([
+    {
+      domain: "switch",
+      service: "turn_on",
+      data: {},
+      target: { entity_id: "switch.mesh_b_guest_control" },
+    },
+  ]);
+  await page.evaluate(() => globalThis.wifiFixture.finish());
+  await expect(guest).toHaveAttribute("aria-busy", "false");
+  await expect(guest).not.toBeChecked();
+  await update(page, "switch.mesh_b_guest_control", "on");
+  await expect(guest).toBeChecked();
+  await iot.click();
+  await expect(iot).toHaveAttribute("aria-busy", "true");
+  expect((await presses(page)).at(-1)).toEqual({
+    domain: "switch",
+    service: "turn_off",
+    data: {},
+    target: { entity_id: "switch.mesh_b_iot_control" },
+  });
+  await page.evaluate(() => globalThis.wifiFixture.finish());
+  await update(page, "switch.mesh_b_iot_control", "unavailable");
+  await expect(iot).toHaveCount(0);
+});
+
+test("keeps Wi-Fi network controls read-only for non-admins and reports switch errors", async ({
+  page,
+}) => {
+  await setup(page, { networkSwitches: true, admin: false });
+  await expect(card(page).getByRole("switch")).toHaveCount(0);
+  await setup(page, { networkSwitches: true, failure: true });
+  const guest = card(page).getByRole("switch", { name: "Guest network" });
+  await guest.click();
+  await expect(card(page).getByRole("alert")).toContainText("Fixture failure");
+  await expect(guest).not.toBeChecked();
+  await expect(guest).toBeEnabled();
+});
+
+test("gates the Wi-Fi popup and both switches on the verified beta.2 version", async ({
   page,
 }) => {
   for (const [options, supported] of [
     [{ version: "4.1.3" }, false],
     [{ version: "4.2.0-alpha.9" }, false],
     [{ version: "4.2.0-beta.0" }, false],
-    [{ version: "4.2.0-beta.1" }, true],
+    [{ version: "4.2.0-beta.1" }, false],
+    [{ version: "4.2.0b1" }, false],
+    [{ version: "v4.2.0-beta.2" }, true],
     [{ version: "4.2.0b2" }, true],
     [{ version: "4.2.0-rc.1" }, true],
     [{ version: "4.2.0" }, true],
@@ -182,7 +266,7 @@ test("exposes the Wi-Fi popup only for a verified ha-deco version meeting the mi
       false,
     ],
   ]) {
-    await setup(page, options);
+    await setup(page, { ...options, networkSwitches: true });
     const overview = card(page).locator(".wifi-channel-summary");
     await expect(overview).toContainText("Channel 6 · 40 MHz");
     expect(
@@ -191,8 +275,36 @@ test("exposes the Wi-Fi popup only for a verified ha-deco version meeting the mi
     await expect(
       card(page).getByRole("button", { name: "Wi-Fi scan and optimization" }),
     ).toHaveCount(supported ? 1 : 0);
+    await expect(card(page).locator(".wifi-overview-status")).toHaveCount(
+      supported ? 1 : 0,
+    );
+    await expect(card(page).getByRole("switch")).toHaveCount(supported ? 2 : 0);
     expect(await presses(page)).toEqual([]);
   }
+});
+
+test("checks the version for standalone Wi-Fi switches and localizes their labels", async ({
+  page,
+}) => {
+  await setup(page, { legacy: true, networkSwitches: true });
+  const mesh = card(page);
+  for (const [language, guest, iot] of [
+    ["en", "Guest network", "IoT network"],
+    ["nl", "Gastnetwerk", "IoT-netwerk"],
+    ["de", "Gastnetz", "IoT-Netz"],
+    ["fr", "Réseau invité", "Réseau IoT"],
+  ]) {
+    await mesh.evaluate((element, language) => {
+      const { hass } = globalThis.wifiFixture;
+      element.hass = { ...hass, language };
+    }, language);
+    await expect(mesh.getByRole("switch", { name: guest })).not.toBeChecked();
+    await expect(mesh.getByRole("switch", { name: iot })).toBeChecked();
+  }
+  await expect(mesh.locator(".wifi-monitor-links")).toHaveCount(0);
+  expect(
+    await page.evaluate(() => globalThis.wifiFixture.manifestRequests),
+  ).toHaveLength(1);
 });
 
 test("shows live main Deco channels and names the monitor in all four languages", async ({
@@ -252,6 +364,36 @@ test("shows live main Deco channels and names the monitor in all four languages"
     "Canal 10 · 40 MHz",
   );
   expect(await presses(page)).toEqual([]);
+});
+
+test("follows Wi-Fi advice on the overview after the popup closes", async ({
+  page,
+}) => {
+  await setup(page);
+  const overview = card(page).locator(".wifi-overview-status");
+  await card(page)
+    .getByRole("button", { name: "Wi-Fi scan and optimization" })
+    .click();
+  await dialog(page).getByRole("button", { name: "Scan Wi-Fi" }).click();
+  await update(page, "sensor.mesh_a_result", "scanning");
+  await dialog(page).getByRole("button", { name: "Close" }).click();
+  await expect(overview).toHaveText("Deco is scanning");
+  await update(page, "sensor.mesh_a_result", "optimal", {
+    outcome: "scan_not_observed",
+    acknowledged: true,
+  });
+  await expect(overview).toContainText("Deco acknowledged the request.");
+  await expect(overview).toContainText("A completed scan was not observed.");
+  await expect(overview).not.toContainText("Deco reported a completed scan.");
+  await update(page, "sensor.mesh_a_result", "optimizable");
+  await expect(overview).toHaveText("Optimization recommended");
+  await update(page, "sensor.mesh_a_result", "confirm_optimization");
+  await expect(overview).toHaveText("Awaiting confirmation");
+  await update(page, "sensor.mesh_a_result", "optimizing");
+  await expect(overview).toHaveText("Deco is optimizing");
+  await update(page, "sensor.mesh_a_result", "unavailable");
+  await expect(overview).toHaveText("Wi-Fi advice is unavailable.");
+  expect(await presses(page)).toHaveLength(1);
 });
 
 test("scans once on request, reopens without a scan, and compares real readings after two optimization clicks", async ({
@@ -443,6 +585,9 @@ test("limits detection and actions to the selected mesh and confirmation to the 
     card(page).getByRole("button", { name: "Wi-Fi scan and optimization" }),
   ).toHaveCount(0);
   await setup(page, { multiple: true, select: "mesh_b" });
+  await expect(card(page).locator(".wifi-selected-mesh b")).toHaveText(
+    "mesh_b",
+  );
   await card(page)
     .getByRole("button", { name: "Wi-Fi scan and optimization" })
     .click();

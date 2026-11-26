@@ -112,7 +112,7 @@ try {
 
 Open na publicatie de Marketplace-link uit de [README](../README.md) in een Home Assistant-testomgeving en installeer de kaart. Controleer dat de resource naar `/local/community/ha-tplink-card/tplink-deco-mesh-card.js` wijst, dat je de kaart kan toevoegen, dat de juiste Deco-entiteiten worden getoond en dat Recorder-historie en de editor werken. Controleer waar mogelijk mobiel en desktop. Verwijder vóór deze test een eventuele dubbele lokale resource uit het testdashboard. [Marketplace-installatie](https://www.home-assistant.io/integrations/marketplace/)
 
-Bij een release met de experimentele wifi-popup controleer je de versiegrens met dezelfde kaartbuild. Bij een oudere of onbekende integratieversie verdwijnt de knop. Met `dkwolf1/ha-deco` v4.2.0-beta.1 of nieuwer en compatibele wifi-entiteiten verschijnt hij. De actuele kanaalwaarden kunnen bij beide installaties zichtbaar zijn.
+Controleer de versiegrens met dezelfde kaartbuild. Op `dkwolf1/ha-deco` v4.2.0-beta.1 of ouder en bij een onbekende versie blijven de wifi-monitor en de gast- en IoT-schakelaars verborgen. Vanaf v4.2.0-beta.2 verschijnt de monitor bij compatibele entiteiten. Home Assistant-beheerders zien de schakelaars zodra de bijbehorende entiteiten voor de gekozen mesh beschikbaar zijn. Gemelde kanaalwaarden en netwerkstatus blijven ook op oudere versies zichtbaar.
 
 ## Aanmelding voor de standaardcatalogus
 
