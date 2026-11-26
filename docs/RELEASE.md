@@ -75,7 +75,7 @@ gh pr create --repo dkwolf1/ha-tplink-card --base main --head $decoBranch --fill
 
 ## GitHub-release na groene CI
 
-Kies de volgende versie in de kaartrepo met bijvoorbeeld `npm version 2.0.0 --no-git-tag-version`. Het commando werkt `package.json` en `package-lock.json` bij. Pas ook de bron en documentatie aan, voeg releasenotities toe aan de changelog, bouw de distributie en merge de PR. HACS haalt het versienummer uit de gepubliceerde GitHub-releasetag. [HACS-documentatie over versies](https://www.hacs.xyz/docs/publish/start/#versions)
+Kies de volgende versie in de kaartrepo met bijvoorbeeld `npm version 3.0.0 --no-git-tag-version`. Het commando werkt `package.json` en `package-lock.json` bij. Pas ook de bron en documentatie aan, voeg releasenotities toe aan de changelog, bouw de distributie en merge de PR. HACS haalt het versienummer uit de gepubliceerde GitHub-releasetag. [HACS-documentatie over versies](https://www.hacs.xyz/docs/publish/start/#versions)
 
 ```powershell
 $ErrorActionPreference = 'Stop'

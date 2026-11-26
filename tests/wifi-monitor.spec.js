@@ -198,10 +198,10 @@ test("switches guest and IoT networks only on the selected mesh and follows repo
   const iot = card(page).getByRole("switch", { name: "IoT network" });
   await expect(guest).not.toBeChecked();
   await expect(iot).toBeChecked();
-  await guest.press("Space");
+  await guest.press("Enter");
   await expect(guest).toHaveAttribute("aria-busy", "true");
   await expect(guest).toBeFocused();
-  await guest.press("Space");
+  await guest.press("Enter");
   expect(await presses(page)).toEqual([
     {
       domain: "switch",

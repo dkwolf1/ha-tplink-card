@@ -81,7 +81,7 @@ This updates the name on the Deco and preserves the Home Assistant entity ID. Th
 
 ### Wi-Fi channels and experimental optimization
 
-**Compatibility change.** The **Wi-Fi scan and optimization** button and the **Guest network** and **IoT network** switches require **dkwolf1/ha-deco v4.2.0-beta.2 or later** and compatible entities for the selected mesh. The card checks the installed version reported by Home Assistant. Earlier versions can still show channels, widths and network status when reported. [ha-deco releases](https://github.com/dkwolf1/ha-deco/releases)
+**Compatibility change in ha-tplink-card v3.0.0.** The **Wi-Fi scan and optimization** button and the **Guest network** and **IoT network** switches require **dkwolf1/ha-deco v4.2.0-beta.2 or later** and compatible entities for the selected mesh. The card checks the installed version reported by Home Assistant. Earlier versions can still show channels, widths and network status when reported. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)
 
 In **Wi-Fi networks**, Home Assistant administrators can turn either network on or off if its Deco switch is available. The card displays the state reported by Home Assistant.
 
@@ -201,7 +201,7 @@ De naam wijzigt op de Deco en de Home Assistant-entiteits-ID blijft gelijk. De k
 
 ### Wifi-kanalen en experimentele optimalisatie
 
-**Gewijzigde versievereiste.** De knop **Wifi scannen en optimaliseren** en de schakelaars voor **Gastnetwerk** en **IoT-netwerk** vereisen **dkwolf1/ha-deco v4.2.0-beta.2 of nieuwer** en compatibele entiteiten voor de gekozen mesh. De kaart controleert de geïnstalleerde versie die Home Assistant meldt. Oudere versies kunnen gemelde kanalen, kanaalbreedtes en netwerkstatus blijven tonen. [Releases van ha-deco](https://github.com/dkwolf1/ha-deco/releases)
+**Gewijzigde versievereiste in ha-tplink-card v3.0.0.** De knop **Wifi scannen en optimaliseren** en de schakelaars voor **Gastnetwerk** en **IoT-netwerk** vereisen **dkwolf1/ha-deco v4.2.0-beta.2 of nieuwer** en compatibele entiteiten voor de gekozen mesh. De kaart controleert de geïnstalleerde versie die Home Assistant meldt. Oudere versies kunnen gemelde kanalen, kanaalbreedtes en netwerkstatus blijven tonen. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)
 
 In **WiFi-netwerken** kunnen Home Assistant-beheerders beide netwerken aan- of uitzetten als de bijbehorende Deco-schakelaar beschikbaar is. De kaart toont de stand die Home Assistant doorgeeft.
 
@@ -252,7 +252,7 @@ Start `npm run demo` vanuit deze repo en open [de lokale demo](http://127.0.0.1:
 
 ## WLAN auf Deutsch
 
-**Geänderte Versionsanforderung.** Die Schaltfläche **WLAN-Scan und Optimierung** sowie die Schalter für **Gastnetz** und **IoT-Netz** benötigen **dkwolf1/ha-deco v4.2.0-beta.2 oder neuer** und passende Entitäten für das ausgewählte Mesh-Netz. Die Karte prüft die von Home Assistant gemeldete installierte Version. Ältere Versionen können weiterhin gemeldete Kanäle, Kanalbreiten und den Netzstatus anzeigen. [Releases von ha-deco](https://github.com/dkwolf1/ha-deco/releases)
+**Geänderte Versionsanforderung in ha-tplink-card v3.0.0.** Die Schaltfläche **WLAN-Scan und Optimierung** sowie die Schalter für **Gastnetz** und **IoT-Netz** benötigen **dkwolf1/ha-deco v4.2.0-beta.2 oder neuer** und passende Entitäten für das ausgewählte Mesh-Netz. Die Karte prüft die von Home Assistant gemeldete installierte Version. Ältere Versionen können weiterhin gemeldete Kanäle, Kanalbreiten und den Netzstatus anzeigen. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)
 
 Unter **WLAN-Netze** können Home-Assistant-Administratoren beide Netze ein- und ausschalten, sofern der jeweilige Deco-Schalter verfügbar ist. Die Karte zeigt den von Home Assistant gemeldeten Schaltzustand an.
 
@@ -266,7 +266,7 @@ Scan und Optimierung wurden mit einem Deco X50, Hardwareversion 1.0 und Firmware
 
 ## Wi-Fi en français
 
-**Nouvelle version minimale requise.** Le bouton **Analyse et optimisation du Wi-Fi** et les interrupteurs **Réseau invité** et **Réseau IoT** nécessitent **dkwolf1/ha-deco v4.2.0-beta.2 ou ultérieure** et des entités compatibles pour le réseau maillé sélectionné. La carte vérifie la version installée indiquée par Home Assistant. Les versions antérieures peuvent toujours afficher les canaux, leur largeur et l’état des réseaux lorsque ces données sont disponibles. [Versions de ha-deco](https://github.com/dkwolf1/ha-deco/releases)
+**Nouvelle version minimale requise dans ha-tplink-card v3.0.0.** Le bouton **Analyse et optimisation du Wi-Fi** et les interrupteurs **Réseau invité** et **Réseau IoT** nécessitent **dkwolf1/ha-deco v4.2.0-beta.2 ou ultérieure** et des entités compatibles pour le réseau maillé sélectionné. La carte vérifie la version installée indiquée par Home Assistant. Les versions antérieures peuvent toujours afficher les canaux, leur largeur et l’état des réseaux lorsque ces données sont disponibles. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)
 
 Dans **Réseaux Wi-Fi**, les administrateurs de Home Assistant peuvent activer ou désactiver chacun de ces réseaux lorsque l’interrupteur Deco correspondant est disponible. La carte affiche l’état indiqué par Home Assistant.
 
