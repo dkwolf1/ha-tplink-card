@@ -41,6 +41,8 @@ The same file is in the ZIP on the [release page](https://github.com/dkwolf1/ha-
 
 The card editor sets the title, layout, mesh entry, history range and visible sections. The card and editor follow your Home Assistant profile language. They support English, Dutch, German and French, with English as the fallback.
 
+Under **Mesh installation**, choose a mesh by the name of its main Deco. The card saves its `entry_id` and shows the selected mesh beside the Wi-Fi controls. Open **Technical diagnostics** for the per-node table and API details.
+
 Minimal configuration:
 
 ```yaml
@@ -79,9 +81,11 @@ This updates the name on the Deco and preserves the Home Assistant entity ID. Th
 
 ### Wi-Fi channels and experimental optimization
 
-**Breaking change for Wi-Fi preview builds in v2.0.0.** Upgrade the integration if your test build showed the popup with an older version.
+**Compatibility change.** The **Wi-Fi scan and optimization** button and the **Guest network** and **IoT network** switches require **dkwolf1/ha-deco v4.2.0-beta.2 or later** and compatible entities for the selected mesh. The card checks the installed version reported by Home Assistant. Earlier versions can still show channels, widths and network status when reported. [ha-deco releases](https://github.com/dkwolf1/ha-deco/releases)
 
-The **Wi-Fi networks** panel shows the main Deco’s current channels and widths when reported. The **Wi-Fi scan and optimization** button requires [dkwolf1/ha-deco v4.2.0-beta.1 or later](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) and compatible Wi-Fi entities for the selected main Deco. The card checks the installed version reported by Home Assistant. Current channels remain visible on earlier versions that report them.
+In **Wi-Fi networks**, Home Assistant administrators can turn either network on or off if its Deco switch is available. The card displays the state reported by Home Assistant.
+
+The panel also shows live Deco advice when the monitor is available, even with the dialog closed. Acknowledgment means the request was received.
 
 Enable the experimental feature and configure the SSH host fingerprint in the integration. Home Assistant administrators can then use the available actions. For multiple meshes, select the relevant **Mesh installation** in the card editor.
 
@@ -93,6 +97,8 @@ Scan and optimization were validated with a Deco X50 hardware 1.0 running firmwa
 ### Make the card wider
 
 Add **ha-tplink-card** through the card picker and leave **Layout** on **Automatic**. In a Sections dashboard, the card fills its section and fits its height to the content by default. At 800 px of card width, the topology and diagnostics appear side by side. On narrower cards they stack.
+
+The topology draws links only for reported connections that can be matched to a Deco. On narrow cards, the mesh diagram places the main Deco above the satellites and still shows each Deco’s status, connection type and client count.
 
 Home Assistant sets the space available to each card. To fill a whole tab, place this card alone on a **Panel (1 card)** tab. On an existing card, a saved size override in **Layout** still applies. Select **Use recommended size** to restore the new default. [Home Assistant Panel view](https://www.home-assistant.io/dashboards/panel/) · [Resizing a card](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
 
@@ -157,6 +163,8 @@ Hetzelfde bestand zit in het ZIP-pakket op de [releasepagina](https://github.com
 
 In de kaarteditor stel je titel, formaat, mesh-installatie, grafiekvenster en zichtbare secties in. De kaart en editor volgen de taal van je Home Assistant-profiel. Ze ondersteunen Engels, Nederlands, Duits en Frans. Voor overige talen gebruiken ze Engels.
 
+Kies onder **Mesh-installatie** een mesh op naam van zijn hoofd-Deco. De kaart bewaart de bijbehorende `entry_id` en toont de gekozen mesh bij de wifi-knop. Open **Technische diagnose** voor de tabel per Deco en de API-details.
+
 Minimale configuratie:
 
 ```yaml
@@ -193,9 +201,11 @@ De naam wijzigt op de Deco en de Home Assistant-entiteits-ID blijft gelijk. De k
 
 ### Wifi-kanalen en experimentele optimalisatie
 
-**Breaking change voor wifi-testbuilds in v2.0.0.** Werk de integratie bij als je testbuild de popup bij een oudere versie toonde.
+**Gewijzigde versievereiste.** De knop **Wifi scannen en optimaliseren** en de schakelaars voor **Gastnetwerk** en **IoT-netwerk** vereisen **dkwolf1/ha-deco v4.2.0-beta.2 of nieuwer** en compatibele entiteiten voor de gekozen mesh. De kaart controleert de geïnstalleerde versie die Home Assistant meldt. Oudere versies kunnen gemelde kanalen, kanaalbreedtes en netwerkstatus blijven tonen. [Releases van ha-deco](https://github.com/dkwolf1/ha-deco/releases)
 
-In **WiFi-netwerken** zie je de huidige kanalen en breedtes die de hoofd-Deco rapporteert. De knop **Wifi scannen en optimaliseren** vereist [dkwolf1/ha-deco v4.2.0-beta.1 of nieuwer](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) en compatibele wifi-entiteiten voor de gekozen hoofd-Deco. De kaart controleert de geïnstalleerde versie die Home Assistant meldt. Huidige kanalen blijven ook zichtbaar op oudere versies die deze waarden rapporteren.
+In **WiFi-netwerken** kunnen Home Assistant-beheerders beide netwerken aan- of uitzetten als de bijbehorende Deco-schakelaar beschikbaar is. De kaart toont de stand die Home Assistant doorgeeft.
+
+Als de monitor beschikbaar is, toont het overzicht ook het actuele Deco-advies wanneer de popup dicht is. Een bevestiging betekent dat Deco het verzoek heeft ontvangen.
 
 Schakel de experimentele functie in en stel de SSH-vingerafdruk in bij de integratie. Daarna kunnen Home Assistant-beheerders de beschikbare acties gebruiken. Kies bij meerdere meshes de juiste **Mesh-installatie** in de kaarteditor.
 
@@ -207,6 +217,8 @@ Scannen en optimaliseren zijn gevalideerd op een Deco X50 hardware 1.0 met firmw
 ### Maak de kaart breder
 
 Voeg **ha-tplink-card** toe via de kaartkiezer en laat **Formaat** op **Automatisch** staan. Op een dashboard met secties vult de kaart standaard de hele sectie en past de hoogte zich aan de inhoud aan. Vanaf 800 px kaartbreedte staan topologie en diagnose naast elkaar. Bij minder ruimte staan ze onder elkaar.
+
+De topologie tekent alleen lijnen voor gemelde verbindingen die aan een Deco kunnen worden gekoppeld. Op smalle kaarten staat de hoofd-Deco boven de satellieten. Je ziet bij elke Deco de status, het verbindingstype en het aantal clients.
 
 Home Assistant bepaalt hoeveel ruimte elke kaart krijgt. Wil je dat de kaart een heel tabblad vult, plaats haar dan als enige kaart op een tabblad van het type **Paneel (1 kaart)**. Bij een bestaande kaart blijft een eerder ingestelde grootte onder **Indeling** gelden. Kies **Gebruik aanbevolen grootte** om de nieuwe standaard te gebruiken. [Paneelweergave](https://www.home-assistant.io/dashboards/panel/) · [Kaartgrootte aanpassen](https://www.home-assistant.io/dashboards/cards/#resizing-a-card)
 
@@ -240,7 +252,9 @@ Start `npm run demo` vanuit deze repo en open [de lokale demo](http://127.0.0.1:
 
 ## WLAN auf Deutsch
 
-**Inkompatible Änderung für WLAN-Testbuilds ab v2.0.0.** Die Schaltfläche **WLAN-Scan und Optimierung** setzt [dkwolf1/ha-deco v4.2.0-beta.1 oder neuer](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) und kompatible WLAN-Entitäten des gewählten Mesh-Netzes voraus. Die Karte prüft die von Home Assistant gemeldete installierte Version. Ältere Versionen können weiterhin aktuelle Kanäle und Kanalbreiten anzeigen, sofern sie diese Werte melden.
+**Geänderte Versionsanforderung.** Die Schaltfläche **WLAN-Scan und Optimierung** sowie die Schalter für **Gastnetz** und **IoT-Netz** benötigen **dkwolf1/ha-deco v4.2.0-beta.2 oder neuer** und passende Entitäten für das ausgewählte Mesh-Netz. Die Karte prüft die von Home Assistant gemeldete installierte Version. Ältere Versionen können weiterhin gemeldete Kanäle, Kanalbreiten und den Netzstatus anzeigen. [Releases von ha-deco](https://github.com/dkwolf1/ha-deco/releases)
+
+Unter **WLAN-Netze** können Home-Assistant-Administratoren beide Netze ein- und ausschalten, sofern der jeweilige Deco-Schalter verfügbar ist. Die Karte zeigt den von Home Assistant gemeldeten Schaltzustand an.
 
 Aktiviere die experimentelle Funktion in der Integration und hinterlege dort den SSH-Hostschlüssel-Fingerabdruck. Die verfügbaren Aktionen können nur mit einem Home-Assistant-Administratorkonto ausgeführt werden. Wähle bei mehreren Mesh-Netzen im Karteneditor die passende **Mesh-Installation** aus.
 
@@ -252,7 +266,9 @@ Scan und Optimierung wurden mit einem Deco X50, Hardwareversion 1.0 und Firmware
 
 ## Wi-Fi en français
 
-**Modification incompatible avec les versions de test du Wi-Fi à partir de la v2.0.0.** Le bouton **Analyse et optimisation du Wi-Fi** nécessite [dkwolf1/ha-deco v4.2.0-beta.1 ou ultérieure](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.1) et des entités Wi-Fi compatibles pour le réseau maillé sélectionné. La carte vérifie la version installée indiquée par Home Assistant. Les versions antérieures peuvent toujours afficher les canaux et leurs largeurs lorsqu’elles les signalent.
+**Nouvelle version minimale requise.** Le bouton **Analyse et optimisation du Wi-Fi** et les interrupteurs **Réseau invité** et **Réseau IoT** nécessitent **dkwolf1/ha-deco v4.2.0-beta.2 ou ultérieure** et des entités compatibles pour le réseau maillé sélectionné. La carte vérifie la version installée indiquée par Home Assistant. Les versions antérieures peuvent toujours afficher les canaux, leur largeur et l’état des réseaux lorsque ces données sont disponibles. [Versions de ha-deco](https://github.com/dkwolf1/ha-deco/releases)
+
+Dans **Réseaux Wi-Fi**, les administrateurs de Home Assistant peuvent activer ou désactiver chacun de ces réseaux lorsque l’interrupteur Deco correspondant est disponible. La carte affiche l’état indiqué par Home Assistant.
 
 Activez la fonction expérimentale dans l’intégration et configurez l’empreinte de la clé d’hôte SSH au même endroit. Les actions disponibles nécessitent un compte administrateur Home Assistant. Si vous avez plusieurs réseaux maillés, sélectionnez l’**Installation Deco** voulue dans l’éditeur de carte.
 

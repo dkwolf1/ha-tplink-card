@@ -233,6 +233,12 @@
     satellite: ["satellite", "satelliet", "Satellit", "satellite"],
     satellites: ["satellites", "satellieten", "Satelliten", "satellites"],
     hiddenNodes: ["not shown", "niet getoond", "ausgeblendet", "non affichés"],
+    unknownNodeLink: [
+      "Connection unknown",
+      "Verbinding onbekend",
+      "Verbindung unbekannt",
+      "Liaison inconnue",
+    ],
     topologyNote: [
       "A logical view of the main Deco and reported satellite connections.",
       "Logisch overzicht op basis van de gemelde hoofd-Deco en satellietkoppelingen. Geen gemeten radiopad of signaalsterkte tussen nodes.",
@@ -291,6 +297,12 @@
       "Deco-Status und Diagnose",
       "État et diagnostic des Deco",
     ],
+    technicalDiagnostics: [
+      "Technical diagnostics",
+      "Technische diagnose",
+      "Technische Diagnose",
+      "Diagnostics techniques",
+    ],
     cpuPerNode: [
       "CPU / RAM per node",
       "CPU / RAM per node",
@@ -327,6 +339,12 @@
     ],
     guestNetwork: ["Guest network", "Gastnetwerk", "Gastnetz", "Réseau invité"],
     iotNetwork: ["IoT network", "IoT-netwerk", "IoT-Netz", "Réseau IoT"],
+    wifiSwitchError: [
+      "Could not change the Wi-Fi network.",
+      "Wifi-netwerk wijzigen mislukt.",
+      "Das WLAN konnte nicht ein- oder ausgeschaltet werden.",
+      "Impossible de modifier l’état du réseau Wi-Fi.",
+    ],
     on: ["On", "Aan", "Ein", "Activé"],
     off: ["Off", "Uit", "Aus", "Désactivé"],
     wifiHint: [
@@ -416,10 +434,10 @@
       "Ces changements sont temporaires. Pour les conserver, utilisez l’éditeur de carte ou la configuration YAML.",
     ],
     multipleMeshes: [
-      "Several TP-Link Deco installations were found. The card shows the first one. Set {setting} to choose your mesh.",
-      "Meerdere TP-Link Deco-installaties gevonden. Momenteel wordt de eerste getoond. Stel {setting} in om de juiste mesh te kiezen.",
-      "Mehrere TP-Link-Deco-Installationen gefunden. Die Karte zeigt die erste an. Wähle dein Mesh über {setting} aus.",
-      "Plusieurs installations TP-Link Deco ont été détectées. La carte affiche la première. Renseignez {setting} pour choisir votre réseau maillé.",
+      "Several TP-Link Deco installations were found. The card shows the first one. To choose another mesh, open {setting} in the card editor.",
+      "Meerdere TP-Link Deco-installaties gevonden. De kaart toont de eerste. Kies een andere mesh bij {setting} in de kaarteditor.",
+      "Mehrere TP-Link-Deco-Installationen gefunden. Die Karte zeigt die erste an. Wähle im Karteneditor unter {setting} ein anderes Mesh.",
+      "Plusieurs installations TP-Link Deco ont été détectées. La carte affiche la première. Dans l’éditeur de carte, ouvrez {setting} pour en choisir une autre.",
     ],
     noUnits: [
       "No Deco units found",
@@ -939,7 +957,7 @@
       .filter(Number.isFinite);
     return timestamp.length ? Math.max(...timestamp) : null;
   }
-  function supportsWifiMonitor(manifest) {
+  function supportsWifiControls(manifest) {
     const repo = /^https:\/\/github\.com\/dkwolf1\/ha-deco(?:\/|$)/i;
     if (
       manifest?.domain !== DECO_DOMAIN ||
@@ -962,7 +980,7 @@
     return (
       !phase ||
       phase === "rc" ||
-      ((phase === "beta" || phase === "b") && Number(version[5]) >= 1)
+      ((phase === "beta" || phase === "b") && Number(version[5]) >= 2)
     );
   }
   function wifiSample(entity, value) {
@@ -1081,6 +1099,7 @@
       this._selectedNode = null;
       this._showAllClients = false;
       this._clientActionFeedback = new Map();
+      this._wifiSwitchFeedback = new Map();
       this._clientRenameDialog = null;
       this._wifiDialog = null;
       this._wifiTimer = null;
@@ -1147,6 +1166,7 @@
         this._hass?.user?.id !== value?.user?.id
       ) {
         this._clientActionFeedback = new Map();
+        this._wifiSwitchFeedback = new Map();
         this._clientRenameDialog?.element.close();
         this._wifiDialog?.element.close();
       }
@@ -1308,6 +1328,7 @@
           return {
             id,
             name: label,
+            reportedName: a.friendly_name,
             mac,
             master: boolAttr(a.master),
             parentMac,
@@ -1392,14 +1413,33 @@
         : nodes.length && nodes.every((n) => n.clients != null)
           ? nodes.reduce((sum, n) => sum + n.clients, 0)
           : null;
+      const wifiMesh = this._wifiMesh(regs, entries, nodes);
+      const canSwitch =
+        this._wifiControlsSupported() &&
+        hass?.user?.is_admin === true &&
+        !!hass.services?.switch?.turn_on &&
+        !!hass.services?.switch?.turn_off &&
+        typeof hass.callService === "function";
       const wifi = {};
       for (const band of ["main", "guest", "iot"]) {
         const auto = binEntity(`wifi_${band}`);
         const entity = manual[`wifi_${band}`] || auto;
         const state = stateVal(hass, entity);
+        const networkSwitch =
+          band !== "main"
+            ? wifiMesh?.entityId("switch", `_wifi_${band}_switch`, wifiMesh.mac)
+            : null;
+        const switchState = stateVal(hass, networkSwitch)?.state;
+        const switchAvailable = switchState === "on" || switchState === "off";
         wifi[band] = {
           id: entity,
-          on: state && valid(state.state) ? isOnline(state.state) : null,
+          switchId: networkSwitch,
+          on: switchAvailable
+            ? switchState === "on"
+            : state && valid(state.state)
+              ? isOnline(state.state)
+              : null,
+          control: canSwitch && switchAvailable ? networkSwitch : null,
           ssid: state?.attributes?.ssid || null,
         };
       }
@@ -1431,7 +1471,7 @@
         master,
         clients,
         wifi,
-        wifiMonitor: this._wifiMonitorData(regs, entries, nodes),
+        wifiMonitor: this._wifiMonitorData(wifiMesh),
         down,
         up,
         clientCount,
@@ -1850,6 +1890,10 @@
         if (this._selectedNode !== b.dataset.id) this._showAllClients = false;
         this._selectedNode = b.dataset.id;
         this._queueRender();
+        if (b.classList.contains("node-table-row"))
+          Promise.resolve().then(() =>
+            this._content.querySelector(".detail-panel")?.focus(),
+          );
       } else if (a === "clear-node") {
         this._selectedNode = null;
         this._showAllClients = false;
@@ -1860,6 +1904,8 @@
         this._openClientRename(b);
       } else if (a === "wifi-monitor") {
         this._openWifiMonitor();
+      } else if (a === "wifi-switch") {
+        this._setWifiNetwork(b);
       } else if (a === "toggle-clients") {
         this._showAllClients = !this._showAllClients;
         this._queueRender();
@@ -1896,13 +1942,36 @@
     _metric(label, value, icon) {
       return `<div class="metric"><span class="metric-icon">${ico(icon, 22)}</span><div><small title="${esc(label)}">${esc(label)}</small><strong title="${esc(value)}">${esc(value)}</strong></div></div>`;
     }
-    _topology(d) {
+    _topology(d, compact) {
       const { t, countLabel } = this._ui;
       const nodes = d.nodes,
         master = d.master;
       if (!nodes.length) return `<div class="empty-small">${t.noNodes}</div>`;
-      const satellites = nodes.filter((n) => n !== master).slice(0, 10);
-      const pos = [
+      const satellites = nodes.filter((n) => n !== master);
+      const parents = new Map(
+        satellites.map((n) => {
+          const mac = normalizeClientMac(n.parentMac);
+          const name = normalize(n.parentName);
+          const matches = nodes.filter((p) =>
+            n.parentMac
+              ? mac && normalizeClientMac(p.mac) === mac
+              : name && normalize(p.reportedName) === name,
+          );
+          return [
+            n,
+            matches.length === 1 && matches[0] !== n ? matches[0] : null,
+          ];
+        }),
+      );
+      const internet = `${ico("earth", 15)} Internet ${this._statusPill(d.internet)}`;
+      const nodeButton = (n, root, position = "") => {
+        const current = n.id === this._selectedNode;
+        const type = root ? t.mainDeco : n.connection;
+        const id = esc(n.id);
+        return `<button type="button" data-action="node" data-id="${id}" aria-label="${esc(message(t.nodeDetails, { name: n.name }))}" aria-describedby="link-${id} status-${id}" aria-expanded="${current}" class="node ${root ? "root" : ""} ${current ? "selected" : ""} ${n.online === false ? "offline" : ""}" ${position}><span class="cylinder" aria-hidden="true"></span><span class="node-label"><b title="${esc(n.name)}">${esc(n.name)}</b><span id="link-${id}" class="node-type">${esc(type)}${!root && !parents.get(n) ? `<span class="node-link-unknown">${t.unknownNodeLink}</span>` : ""}</span></span><span id="status-${id}" class="node-info">${this._statusPill(n.online)}<small>${countLabel(n.clientsCount, t.client, t.clientCount)}</small></span></button>`;
+      };
+      const meta = `<div class="topology-meta">${ico("access-point-network", 17)} ${countLabel(nodes.length, t.unit, t.units)} · ${countLabel(satellites.length, t.satellite, t.satellites)}${!compact && satellites.length > 10 ? ` · ${esc(satellites.length - 10)} ${t.hiddenNodes}` : ""}</div>`;
+      const desktopSlots = [
         [175, 138],
         [815, 126],
         [820, 290],
@@ -1914,40 +1983,49 @@
         [725, 35],
         [270, 38],
       ];
+      const satelliteSlots = compact
+        ? satellites.map((_, i) => [
+            i % 2 === 0 ? (i === satellites.length - 1 ? 500 : 250) : 750,
+            181 + Math.floor(i / 2) * 97,
+          ])
+        : desktopSlots.slice(0, satellites.length);
       const positions = [
-        { n: master, x: 495, y: 207, root: true },
-        ...satellites.map((n, i) => ({
-          n,
-          x: pos[i][0],
-          y: pos[i][1],
-          root: false,
-        })),
+        {
+          n: master,
+          x: compact ? 500 : 495,
+          y: compact ? 79 : 207,
+          root: true,
+        },
+        ...satelliteSlots.map(([x, y], i) => ({ n: satellites[i], x, y })),
       ];
       const w = 1000,
-        h = 380;
+        h = compact ? positions.at(-1).y + 51 : 380;
       const lines = positions
         .filter((p) => !p.root)
         .map((p) => {
-          const m =
-            positions.find((q) => q.n.mac === p.n.parentMac) ||
-            positions.find(
-              (q) => normalize(q.n.name) === normalize(p.n.parentName),
-            ) ||
-            positions[0];
+          const m = positions.find((q) => q.n === parents.get(p.n));
+          if (!m) return "";
+          if (compact && m.root)
+            return `<path d="M${m.x} ${m.y} V${p.y - 52} H${p.x} V${p.y}" class="link-path"/>`;
           const midX = (m.x + p.x) / 2,
             midY = (m.y + p.y) / 2 - 20;
           return `<path d="M${m.x} ${m.y} Q${midX} ${midY} ${p.x} ${p.y}" class="link-path"/>`;
         })
         .join("");
       const cards = positions
-        .map(({ n, x, y, root }) => {
-          const current = n.id === this._selectedNode;
-          const type = root ? t.mainDeco : n.connection;
-          return `<button type="button" data-action="node" data-id="${esc(n.id)}" aria-label="${esc(message(t.nodeDetails, { name: n.name }))}" class="node ${root ? "root" : ""} ${current ? "selected" : ""} ${n.online === false ? "offline" : ""}" style="left:${(x / w) * 100}%;top:${(y / h) * 100}%"><span class="cylinder"></span><b title="${esc(n.name)}">${esc(n.name)}</b><span class="node-type">${esc(type)}</span><span class="node-info">${this._statusPill(n.online)}<small>${countLabel(n.clientsCount, t.client, t.clientCount)}</small></span></button>`;
-        })
+        .map(({ n, x, y, root }) =>
+          nodeButton(
+            n,
+            root,
+            `style="left:${(x / w) * 100}%;top:${(y / h) * 100}%"`,
+          ),
+        )
         .join("");
-      const total = nodes.length - satellites.length;
-      return `<div class="topology"><div class="topology-meta">${ico("access-point-network", 17)} ${countLabel(nodes.length, t.unit, t.units)} · ${countLabel(satellites.length, t.satellite, t.satellites)}${total > 1 ? ` · ${esc(total - 1)} ${t.hiddenNodes}` : ""}</div><div class="mesh-canvas"><div class="waves"></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="M495 0 V157" class="internet-path"/>${lines}</svg><div class="internet-node">${ico("earth", 15)} Internet ${this._statusPill(d.internet)}</div>${cards}</div><div class="topology-note">${t.topologyNote}</div></div>`;
+      const canvas = compact
+        ? `class="mesh-canvas mesh-canvas-compact" style="height:${h}px"`
+        : 'class="mesh-canvas"';
+      const internetLine = compact ? "M500 0 V79" : "M495 0 V157";
+      return `<div class="topology">${meta}<div ${canvas}><div class="waves"></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="${internetLine}" class="internet-path"/>${lines}</svg><div class="internet-node">${internet}</div>${cards}</div><div class="topology-note">${t.topologyNote}</div></div>`;
     }
     _nodeDetails(d) {
       const { t, field } = this._ui;
@@ -1965,7 +2043,7 @@
             `<span class="client-chip">${ico("cellphone-link", 14)}${esc(c.name)}</span>`,
         )
         .join("");
-      return `<section class="detail-panel"><div class="section-head"><h3>${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="${t.detailsClose}">✕</button></div><div class="detail-grid">${line(t.status, n.online === true ? t.online : n.online === false ? t.offline : "—")}${line(t.backhaul, n.master ? t.mainDeco : n.connection)}${line("CPU", field(n.cpu, t.percent))}${line(t.memory, field(n.memory, t.percent))}${line(t.backhaulSpeed, field(n.backhaulSpeed, " Mbit/s"))}${line(t.backhaulMax, field(n.backhaulMax, " Mbit/s"))}${line(t.model, n.model || "—")}${line(t.connected, n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? t.fewer : message(t.more, { count: remaining })}</button>` : ""}</div>` : ""}</section>`;
+      return `<section class="detail-panel" tabindex="-1" aria-labelledby="deco-detail-name"><div class="section-head"><h3 id="deco-detail-name">${ico("router-wireless", 17)} ${esc(n.name)}</h3><button type="button" class="tiny-btn" data-action="clear-node" aria-label="${t.detailsClose}">✕</button></div><div class="detail-grid">${line(t.status, n.online === true ? t.online : n.online === false ? t.offline : "—")}${line(t.backhaul, n.master ? t.mainDeco : n.connection)}${line("CPU", field(n.cpu, t.percent))}${line(t.memory, field(n.memory, t.percent))}${line(t.backhaulSpeed, field(n.backhaulSpeed, " Mbit/s"))}${line(t.backhaulMax, field(n.backhaulMax, " Mbit/s"))}${line(t.model, n.model || "—")}${line(t.connected, n.clientsCount == null ? "—" : n.clientsCount)}</div>${clients ? `<div class="client-chips">${clients}${remaining ? `<button type="button" class="tiny-btn" data-action="toggle-clients" aria-expanded="${this._showAllClients}">${this._showAllClients ? t.fewer : message(t.more, { count: remaining })}</button>` : ""}</div>` : ""}</section>`;
     }
     _nodesPanel(d) {
       const { t, field } = this._ui;
@@ -2022,6 +2100,13 @@
         .join("");
       return `<section class="panel"><div class="section-head"><h3>${ico("devices", 19)} ${t.clientActivity}</h3></div><div class="clients-big">${d.clientCount == null ? "—" : esc(d.clientCount)} <span>${isSingular(d.clientCount) ? t.connectedSingle : t.connectedCount}</span></div><div class="bands">${bands}</div><small class="hint">${t.clientHint}</small></section>`;
     }
+    _wifiControlsSupported() {
+      return (
+        this._hass?.connected !== false &&
+        this._wifiManifest?.connection === this._hass?.connection &&
+        this._wifiManifest?.supported === true
+      );
+    }
     async _ensureWifiManifest() {
       const connection = this._hass?.connection;
       if (
@@ -2037,14 +2122,46 @@
           type: "manifest/get",
           integration: DECO_DOMAIN,
         });
-        check.supported = supportsWifiMonitor(manifest);
+        check.supported = supportsWifiControls(manifest);
       } catch {
         // Channel readings remain usable if Home Assistant cannot verify the version.
       } finally {
         if (this._wifiManifest === check) this._queueRender();
       }
     }
-    _wifiMonitorData(regs, entries, nodes) {
+    async _setWifiNetwork(button) {
+      const { band, entity } = button.dataset;
+      if (band !== "guest" && band !== "iot") return;
+      const network = this._data().wifi[band];
+      const feedback = this._wifiSwitchFeedback;
+      if (
+        !network.control ||
+        network.control !== entity ||
+        String(network.on) !== button.getAttribute("aria-checked") ||
+        feedback.get(entity)?.pending
+      )
+        return;
+
+      feedback.set(entity, { pending: true });
+      this._queueRender();
+      try {
+        await this._hass.callService(
+          "switch",
+          network.on ? "turn_off" : "turn_on",
+          {},
+          { entity_id: entity },
+        );
+        feedback.delete(entity);
+      } catch (error) {
+        const reason = error?.message || error?.error?.message;
+        feedback.set(entity, {
+          error: typeof reason === "string" ? reason : "",
+        });
+      } finally {
+        this._queueRender();
+      }
+    }
+    _wifiMesh(regs, entries, nodes) {
       const hass = this._hass;
       const entry = entries.selected;
       const masters = nodes.filter((node) => node.master);
@@ -2080,6 +2197,12 @@
         });
         return matches.length === 1 ? matches[0].entity_id : null;
       };
+      return { entry, master, mac, entityId };
+    }
+    _wifiMonitorData(mesh) {
+      if (!mesh) return null;
+      const hass = this._hass;
+      const { entry, master, mac, entityId } = mesh;
       const channels = Object.keys(WIFI_BANDS)
         .map((band) => ({
           band,
@@ -2096,10 +2219,7 @@
         // A freshly registered Home Assistant button can have state "unknown".
         return !!entity && entity.state !== "unavailable";
       };
-      const canOpen =
-        hass.connected !== false &&
-        this._wifiManifest?.connection === hass.connection &&
-        this._wifiManifest?.supported === true;
+      const canOpen = this._wifiControlsSupported();
       const canPress =
         canOpen &&
         !!hass.user?.id &&
@@ -2290,19 +2410,9 @@
         this._queueRender();
       }
     }
-    _renderWifiMonitor(wifi) {
-      const dialog = this._wifiDialog;
-      if (!dialog) return;
-      if (!wifi?.canOpen || wifi.key !== dialog.key) {
-        dialog.element.close();
-        return;
-      }
-      const { t, language } = this._ui;
-      const session = this._wifiSession(wifi);
-      const state = wifi.advice?.state;
-      const scanning = state === "scanning";
-      const optimizing = state === "optimizing";
-      const animate = scanning || optimizing;
+    _wifiAdviceFeedback(advice, session) {
+      const { t } = this._ui;
+      const state = advice?.state;
       const notes = {
         scan_observed: t.wifiObserved,
         scan_not_observed: t.wifiNotObserved,
@@ -2321,15 +2431,41 @@
         optimizable: t.wifiRecommended,
         unavailable: t.wifiUnavailable,
       };
-      const attrs = wifi.advice?.attributes;
+      const attrs = advice?.attributes;
       const freshAdvice =
         !WIFI_BUSY.has(state) &&
         state !== "unavailable" &&
-        session.previousAdvice !== wifi.advice;
-      const outcome =
-        freshAdvice && Object.hasOwn(notes, attrs?.outcome)
-          ? notes[attrs.outcome]
-          : "";
+        session.previousAdvice !== advice;
+      return {
+        label: Object.hasOwn(titles, state) ? titles[state] : t.wifiUnknown,
+        outcome:
+          freshAdvice && Object.hasOwn(notes, attrs?.outcome)
+            ? notes[attrs.outcome]
+            : "",
+        acknowledged:
+          freshAdvice && attrs?.acknowledged === true ? t.wifiAck : "",
+        request:
+          session.pending && !WIFI_BUSY.has(state) && !freshAdvice
+            ? t.wifiRequest
+            : "",
+      };
+    }
+    _renderWifiMonitor(wifi) {
+      const dialog = this._wifiDialog;
+      if (!dialog) return;
+      if (!wifi?.canOpen || wifi.key !== dialog.key) {
+        dialog.element.close();
+        return;
+      }
+      const { t, language } = this._ui;
+      const session = this._wifiSession(wifi);
+      const state = wifi.advice?.state;
+      const scanning = state === "scanning";
+      const optimizing = state === "optimizing";
+      const animate = scanning || optimizing;
+      const attrs = wifi.advice?.attributes;
+      const { label, outcome, request, acknowledged } =
+        this._wifiAdviceFeedback(wifi.advice, session);
       const canConfirm =
         state === "confirm_optimization" &&
         session.arm?.observed &&
@@ -2374,15 +2510,6 @@
         !session.arm;
       const optimize = wifi.optimize && state === "optimizable" && !session.arm;
       const disabled = session.pending ? "disabled" : "";
-      const label = Object.hasOwn(titles, state)
-        ? titles[state]
-        : t.wifiUnknown;
-      const request =
-        session.pending && !WIFI_BUSY.has(state) && !freshAdvice
-          ? t.wifiRequest
-          : "";
-      const acknowledged =
-        freshAdvice && attrs?.acknowledged === true ? t.wifiAck : "";
       const markup = `<div class="wifi-lab-grid"><section class="wifi-lab-section">
         <h3>${compares ? t.wifiComparison : t.wifiPanelTitle}</h3>
         ${bandMarkup || `<p>${t.wifiNoBands}</p>${animate ? '<div class="wifi-ruler wifi-scan-placeholder" aria-hidden="true"><i class="wifi-sweep"></i></div>' : ""}`}
@@ -2478,8 +2605,20 @@
     _wifiPanel(d) {
       const { t, number } = this._ui;
       const monitor = d.wifiMonitor;
-      if (monitor) this._ensureWifiManifest();
-      if (monitor?.canOpen) this._wifiSession(monitor);
+      if (monitor || d.wifi.guest.switchId || d.wifi.iot.switchId)
+        this._ensureWifiManifest();
+      const session = monitor?.canOpen ? this._wifiSession(monitor) : null;
+      const feedback =
+        session && monitor.advice
+          ? this._wifiAdviceFeedback(monitor.advice, session)
+          : null;
+      const status = feedback
+        ? `<div class="wifi-overview-status" data-state="${esc(monitor.advice.state)}">
+          <strong>${feedback.request || feedback.label}</strong>
+          ${feedback.outcome ? `<small>${feedback.outcome}</small>` : ""}
+          ${feedback.acknowledged ? `<small>${feedback.acknowledged}</small>` : ""}
+        </div>`
+        : "";
       const channels = (monitor?.bands || [])
         .filter(({ channel, width }) => channel || width)
         .map(({ band, channel, width }) => {
@@ -2504,7 +2643,16 @@
       )
         .map((k) => {
           const e = d.wifi[k];
-          return `<div class="wifi-row"><span>${ico("wifi", 18)}<span><b>${esc(names[k])}</b>${e.ssid ? `<small>${esc(e.ssid)}</small>` : ""}</span></span>${this._statusPill(e.on, t.on, t.off)}</div>`;
+          const feedback = this._wifiSwitchFeedback.get(e.control);
+          const busy = feedback?.pending === true;
+          const control = e.control
+            ? `<button type="button" class="wifi-switch" role="switch" data-action="wifi-switch" data-band="${k}" data-entity="${esc(e.control)}" aria-label="${esc(names[k])}" aria-checked="${e.on}" aria-busy="${busy}" aria-disabled="${busy}"><span class="wifi-switch-state" aria-hidden="true">${e.on ? t.on : t.off}</span><span class="wifi-switch-track" aria-hidden="true"></span></button>`
+            : this._statusPill(e.on, t.on, t.off);
+          const error =
+            feedback?.error != null
+              ? `<small class="wifi-error" role="alert">${t.wifiSwitchError} ${esc(feedback.error)}</small>`
+              : "";
+          return `<div><div class="wifi-row"><span>${ico("wifi", 18)}<span><b>${esc(names[k])}</b>${e.ssid ? `<small>${esc(e.ssid)}</small>` : ""}</span></span>${control}</div>${error}</div>`;
         })
         .join("")}</div>${
         channels
@@ -2512,10 +2660,11 @@
           <h4>${t.wifiCurrentChannels}</h4><dl>${channels}</dl>
         </div>`
           : ""
-      }<small class="hint">${t.wifiHint}</small>${
+      }${status}<small class="hint">${t.wifiHint}</small>${
         monitor?.canOpen
           ? `<div class="wifi-monitor-links">
-          <button type="button" class="tiny-btn" data-action="wifi-monitor" aria-haspopup="dialog">${t.wifiMonitor}</button>
+          <button type="button" class="tiny-btn" data-action="wifi-monitor" aria-haspopup="dialog" aria-describedby="wifi-selected-mesh">${t.wifiMonitor}</button>
+          <span class="wifi-selected-mesh" id="wifi-selected-mesh">${t.meshEntry} · <b>${esc(monitor.name)}</b></span>
         </div>`
           : ""
       }</section>`;
@@ -2597,12 +2746,15 @@
       const loaded = d.nodes.length > 0;
       if (loaded) this._ensureHistory(d);
       const topInfo = d.entries.multiple
-        ? `<div class="notice">${message(t.multipleMeshes, { setting: "<code>entry_id</code>" })}</div>`
+        ? `<div class="notice">${message(t.multipleMeshes, { setting: `<b>${esc(t.meshEntry)}</b>` })}</div>`
         : "";
       const noData = `<div class="no-data">${ico("access-point-network-off", 36)}<b>${t.noUnits}</b><p>${t.noUnitsHint}</p><button type="button" data-action="retry">${t.retry}</button>${this._regError ? `<small>${esc(t.registryError)}</small>` : ""}</div>`;
       let body = noData;
       if (loaded) {
-        const topology = section("topology", this._topology(d));
+        const topology = section(
+          "topology",
+          this._topology(d, layout === "compact"),
+        );
         const details = this._nodeDetails(d);
         const health = `<div class="health-strip">
           ${this._metric(t.mainCpu, field(d.master?.cpu, t.percent), "chip")}
@@ -2616,14 +2768,19 @@
         const clients = section("clients", this._clientsPanel(d));
         const clientControls = this._clientControlsPanel(clientTargets);
         const api = section("api", this._apiPanel(d));
-        const overview = topology + traffic + api;
-        body =
+        const diagnostics =
+          nodes || api
+            ? `<details class="diagnostics"><summary>${ico("wrench", 18)} <span>${t.technicalDiagnostics}</span>${ico("chevron-down", 18)}</summary><div class="diagnostics-body">${nodes}${api}</div></details>`
+            : "";
+        const overview = topology + traffic;
+        const dashboard =
           layout === "wide" && overview
             ? `<div class="mesh-columns">
               <div>${overview}</div>
-              <div>${health}<div class="mesh-secondary">${wifi}${clients}</div>${nodes}${details}${clientControls}</div>
+              <div>${health}${details}<div class="mesh-secondary">${wifi}${clients}</div>${clientControls}</div>
             </div>`
-            : `${topology}${details}${health}<div class="lower-grid">${traffic}${wifi}${nodes}${clients}</div>${clientControls}${api}`;
+            : `${topology}${details}${health}<div class="lower-grid">${traffic}${wifi}${clients}</div>${clientControls}`;
+        body = dashboard + diagnostics;
       }
       const lastUpdate = Math.max(
         ...[d.decoUpdate, d.clientUpdate]
@@ -2640,10 +2797,33 @@
         const chartFocused = activeElement?.classList.contains("chart-plot");
         const clientToggleFocused =
           activeElement?.dataset.action === "toggle-clients";
+        const nodeFocusId = activeElement?.classList.contains("node")
+          ? activeElement.dataset.id
+          : null;
+        const wifiOpenerFocused =
+          activeElement?.dataset.action === "wifi-monitor";
+        const wifiSwitchFocus =
+          activeElement?.dataset.action === "wifi-switch"
+            ? activeElement.dataset.entity
+            : null;
+        const previousDiagnostics =
+          this._content.querySelector?.(".diagnostics");
+        const diagnosticsOpen = previousDiagnostics?.open;
+        const diagnosticsFocused =
+          activeElement &&
+          activeElement === previousDiagnostics?.firstElementChild;
         const clientScroll = this.shadowRoot.querySelector?.(
           ".client-control-list",
         )?.scrollTop;
         this._content.innerHTML = markup;
+        if (diagnosticsOpen || diagnosticsFocused) {
+          const diagnostics = this._content.querySelector(".diagnostics");
+          if (diagnostics) {
+            diagnostics.open = diagnosticsOpen;
+            if (diagnosticsFocused)
+              diagnostics.firstElementChild.focus({ preventScroll: true });
+          }
+        }
         if (clientScroll) {
           const list = this.shadowRoot.querySelector(".client-control-list");
           if (list) list.scrollTop = clientScroll;
@@ -2656,6 +2836,18 @@
         if (clientToggleFocused)
           this.shadowRoot
             .querySelector('[data-action="toggle-clients"]')
+            ?.focus({ preventScroll: true });
+        if (nodeFocusId)
+          Array.from(this._content.querySelectorAll(".node"))
+            .find((node) => node.dataset.id === nodeFocusId)
+            ?.focus({ preventScroll: true });
+        if (wifiOpenerFocused)
+          this._content
+            .querySelector('[data-action="wifi-monitor"]')
+            ?.focus({ preventScroll: true });
+        if (wifiSwitchFocus)
+          Array.from(this._content.querySelectorAll(".wifi-switch"))
+            .find((control) => control.dataset.entity === wifiSwitchFocus)
             ?.focus({ preventScroll: true });
       }
     }
@@ -2711,6 +2903,32 @@
     .client-rename-error{color:#ffad9d}
     .client-rename-dialog .client-control-actions{justify-content:flex-end}
     .wifi-monitor-links,.wifi-lab-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .wifi-monitor-links{align-items:center}.wifi-selected-mesh{font-size:11px;color:#a9c9d4;overflow-wrap:anywhere;min-width:0}.wifi-selected-mesh b{color:#e6ffff}
+    .wifi-switch{display:flex;flex:none;align-items:center;gap:6px;min-height:32px;padding:3px 2px;border:0;background:none;color:#bed5df;font-size:10px}
+    .wifi-switch:focus-visible{outline:2px solid #b7fff6;outline-offset:2px;border-radius:5px}
+    .wifi-switch[aria-checked="true"]{color:#82f6dc}.wifi-switch[aria-busy="true"]{opacity:.6;cursor:progress}
+    .wifi-switch-track{display:flex;align-items:center;width:30px;height:17px;padding:2px;border:1px solid #587d8b;border-radius:12px;background:#152c38}
+    .wifi-switch-track::before{content:"";width:11px;height:11px;border-radius:50%;background:#b5c9d1}
+    .wifi-switch[aria-checked="true"] .wifi-switch-track{justify-content:flex-end;border-color:#37bda7;background:#15534d}
+    .wifi-switch[aria-checked="true"] .wifi-switch-track::before{background:#80f4d7}
+    .diagnostics{margin-top:12px;border:1px solid #24697990;border-radius:14px;background:#092637}
+    .diagnostics>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 13px;list-style:none;cursor:pointer;color:#def6fb;font-size:13px;font-weight:650;border-radius:13px}
+    .diagnostics>summary::-webkit-details-marker{display:none}.diagnostics>summary:focus-visible{outline:2px solid #b7fff6;outline-offset:2px}
+    .diagnostics>summary ha-icon{color:#70dacd}.diagnostics>summary ha-icon:last-child{margin-inline-start:auto}.diagnostics[open]>summary ha-icon:last-child{transform:rotate(180deg)}
+    .diagnostics-body{display:grid;gap:10px;padding:0 10px 10px}.wide .diagnostics-body{grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));align-items:start}
+    .wifi-overview-status{display:grid;gap:3px;margin-top:10px;padding:7px 9px;border-inline-start:2px solid #387788;background:#0b3243;border-radius:5px;font-size:12px;overflow-wrap:anywhere}
+    .wifi-overview-status small{color:#b0ccd7;font-size:11px}
+    .wifi-overview-status:is([data-state="scanning"],[data-state="optimizing"]){border-color:#59dace}
+    .wifi-overview-status:is([data-state="optimizable"],[data-state="confirm_optimization"]){border-color:#ffd38c;color:#ffd38c}
+    .node-label{display:grid;gap:2px;min-width:0;max-width:100%}.node-link-unknown{display:block;color:#ffd38c;font-size:10px;line-height:1.2}
+    .mesh-canvas-compact{margin-top:8px}.mesh-canvas-compact .internet-node{top:2px}
+    .compact .mesh-canvas-compact .node{width:44%;max-width:178px;min-height:78px;justify-content:center;padding:13px 5px 6px;gap:3px;border-radius:10px}
+    .compact .mesh-canvas-compact .node.root{width:52%;max-width:190px;min-height:79px}
+    .mesh-canvas-compact .node-label{width:100%}.compact .mesh-canvas-compact .node b{font-size:12px}
+    .compact .mesh-canvas-compact .node-type{font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+    .compact .mesh-canvas-compact .cylinder{position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:22px;height:18px;margin:0}
+    .compact .mesh-canvas-compact .node-info{gap:2px 5px}.compact .mesh-canvas-compact .node-info small{display:block}
+    .mesh-canvas-compact .link-path,.mesh-canvas-compact .internet-path{vector-effect:non-scaling-stroke;stroke-width:1.4;stroke-dasharray:4 4}
     .wifi-channel-summary{margin-top:10px;padding-top:9px;border-top:1px solid #29808c40}
     .wifi-channel-summary h4{margin:0 0 5px;font-size:12px}
     .wifi-channel-summary dl{display:grid;gap:4px;margin:0;font-size:11px}
@@ -2792,7 +3010,8 @@
       this.attachShadow({ mode: "open" });
       this._config = {};
       this._entries = [];
-      this._loaded = false;
+      this._entryTrackers = new Map();
+      this._entriesConnection = null;
       this.shadowRoot.addEventListener("change", (e) => this._change(e));
     }
     setConfig(config) {
@@ -2804,6 +3023,7 @@
     }
     set hass(hass) {
       if (this._hass === hass) return;
+      const connectionChanged = this._hass?.connection !== hass?.connection;
       const capabilitiesChanged = [
         CLIENT_BLOCK_ACTION,
         CLIENT_RENAME_ACTION,
@@ -2814,26 +3034,59 @@
       );
       const languageChanged = hassUi(this._hass) !== hassUi(hass);
       this._hass = hass;
-      if (capabilitiesChanged || languageChanged) this._render();
+      if (connectionChanged) {
+        this._entriesConnection = null;
+        this._entryTrackers = new Map();
+      }
+      if (this._updateEntryNames() || capabilitiesChanged || languageChanged)
+        this._render();
       this._loadEntries();
     }
     async _loadEntries() {
-      if (this._loaded || !this._hass?.connection?.sendMessagePromise) return;
-      this._loaded = true;
+      const connection = this._hass?.connection;
+      if (
+        !connection?.sendMessagePromise ||
+        this._entriesConnection === connection
+      )
+        return;
+      this._entriesConnection = connection;
+      const trackers = this._entryTrackers;
       try {
-        const rows = await this._hass.connection.sendMessagePromise({
+        const rows = await connection.sendMessagePromise({
           type: "config/entity_registry/list",
         });
-        this._entries = [
-          ...new Set(
-            rows
-              .filter((e) => e.platform === "tplink_deco")
-              .map((e) => e.config_entry_id)
-              .filter(Boolean),
-          ),
-        ].sort();
+        if (trackers !== this._entryTrackers || !Array.isArray(rows)) return;
+        for (const row of rows) {
+          if (row.platform !== DECO_DOMAIN || !row.config_entry_id) continue;
+          const id = row.config_entry_id;
+          if (!trackers.has(id)) trackers.set(id, []);
+          if (!row.disabled_by && row.entity_id?.startsWith("device_tracker."))
+            trackers.get(id).push(row.entity_id);
+        }
+        if (this._updateEntryNames()) this._render();
       } catch (e) {}
-      this._render();
+    }
+    _updateEntryNames() {
+      const entries = [...this._entryTrackers.keys()].sort().map((id) => {
+        const main = this._entryTrackers
+          .get(id)
+          .map((entityId) => stateVal(this._hass, entityId)?.attributes)
+          .filter(
+            (attrs) => attrs?.device_type === "deco" && boolAttr(attrs.master),
+          );
+        const name =
+          main.length === 1 ? String(main[0].friendly_name || "").trim() : "";
+        return { id, name: name || id };
+      });
+      const changed =
+        entries.length !== this._entries.length ||
+        entries.some(
+          ({ id, name }, index) =>
+            id !== this._entries[index].id ||
+            name !== this._entries[index].name,
+        );
+      if (changed) this._entries = entries;
+      return changed;
     }
     _change(e) {
       const t = e.target;
@@ -2861,12 +3114,25 @@
       const { t, language } = hassUi(this._hass);
       const c = this._config,
         styles = `<style>:host{display:block} .editor{display:grid;gap:15px;padding:8px 0;font-family:Roboto,Arial,sans-serif}label{display:grid;gap:4px;font-size:13px}input,select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid var(--divider-color,#777);background:var(--card-background-color,#fff);color:var(--primary-text-color,#222)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.checks label{display:flex;gap:7px;align-items:center}.checks input,.control-setting input{width:auto}.control-setting{display:flex;align-items:center}small{opacity:.75;font-size:11px}</style>`;
+      const entries = [...this._entries];
+      if (c.entry_id && !entries.some(({ id }) => id === c.entry_id))
+        entries.push({ id: c.entry_id, name: c.entry_id });
+      const entryOptions = entries
+        .map(({ id, name }) => {
+          const duplicate = entries.some(
+            (entry) =>
+              entry.id !== id && normalize(entry.name) === normalize(name),
+          );
+          const label = duplicate && name !== id ? `${name} (${id})` : name;
+          return `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(label)}</option>`;
+        })
+        .join("");
       this.shadowRoot.innerHTML = `${styles}<div lang="${language}" class="editor"><label>${t.title}<input name="title" value="${esc(c.title || CARD_NAME)}"/></label><label>${t.layout}<select name="view">${VIEWS.map(
         (view) =>
           `<option value="${view}" ${c.view === view ? "selected" : ""}>${t[view]}</option>`,
       ).join(
         "",
-      )}</select></label><label>${t.meshEntry}<select name="entry_id"><option value="">${t.firstEntry}</option>${this._entries.map((id) => `<option value="${esc(id)}" ${c.entry_id === id ? "selected" : ""}>${esc(id)}</option>`).join("")}</select></label><label>${t.historyRange}<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${historyLength(h, t)}</option>`).join("")}</select></label>${canCallClientAction(this._hass, CLIENT_BLOCK_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> ${t.allowBlock}</label>` : ""}${canCallClientAction(this._hass, CLIENT_RENAME_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_rename" ${c.client_rename === true ? "checked" : ""}/> ${t.allowRename}</label>` : ""}<label>${t.editorSections}</label><div class="checks">${Object.entries(
+      )}</select></label><label>${t.meshEntry}<select name="entry_id"><option value="">${t.firstEntry}</option>${entryOptions}</select></label><label>${t.historyRange}<select name="history_hours">${[1, 6, 24].map((h) => `<option value="${h}" ${Number(c.history_hours || 1) === h ? "selected" : ""}>${historyLength(h, t)}</option>`).join("")}</select></label>${canCallClientAction(this._hass, CLIENT_BLOCK_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_controls" ${c.client_controls === true ? "checked" : ""}/> ${t.allowBlock}</label>` : ""}${canCallClientAction(this._hass, CLIENT_RENAME_ACTION) ? `<label class="control-setting"><input type="checkbox" name="client_rename" ${c.client_rename === true ? "checked" : ""}/> ${t.allowRename}</label>` : ""}<label>${t.editorSections}</label><div class="checks">${Object.entries(
         SECTION_KEYS,
       )
         .map(
