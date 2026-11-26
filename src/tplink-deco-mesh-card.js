@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v2.0.0
+ * ha-tplink-card v3.0.0
  * Home Assistant Lovelace card for compatible tplink_deco integrations.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -3156,5 +3156,5 @@
       },
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v2.0.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v3.0.0 `, "background:#008a80;color:white;");
 })();

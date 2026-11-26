@@ -1,13 +1,14 @@
 # Changelog
 
-## Unreleased
+## 3.0.0
 
-- **Compatibility change.** Require dkwolf1/ha-deco v4.2.0-beta.2 or later for the Wi-Fi scan and optimization monitor and for the guest and IoT switches. Older versions can still display reported channels, widths and network status.
+- **Breaking change.** The Wi-Fi scan and optimization monitor and the guest and IoT switches now require dkwolf1/ha-deco v4.2.0-beta.2 or later. Older versions can still display reported channels, widths and network status. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)
 - Add guest and IoT network controls for administrators when compatible Deco switches are available on the selected mesh.
 - Show live Wi-Fi advice beside the current channels when the monitor is available.
 - Use a stacked mesh diagram on narrow cards. Draw links only for reported connections that can be matched to a Deco.
 - Collapse detailed diagnostics by default and move selected Deco details higher on the card.
 - Show mesh names in the card editor and identify the selected mesh next to the Wi-Fi monitor.
+- Update the desktop and mobile screenshots and document Wi-Fi compatibility in English, Dutch, German and French. [Card wiki](https://github.com/dkwolf1/ha-tplink-card/wiki)
 
 ## 2.0.0
 
