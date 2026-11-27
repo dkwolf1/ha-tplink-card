@@ -1,5 +1,5 @@
 /*
- * ha-tplink-card v3.0.0
+ * ha-tplink-card v3.0.1
  * Home Assistant Lovelace card for compatible tplink_deco integrations.
  * No external dependencies, no direct modem credentials/API calls.
  * MIT License - 2026
@@ -234,10 +234,10 @@
     satellites: ["satellites", "satellieten", "Satelliten", "satellites"],
     hiddenNodes: ["not shown", "niet getoond", "ausgeblendet", "non affichés"],
     unknownNodeLink: [
-      "Connection unknown",
-      "Verbinding onbekend",
-      "Verbindung unbekannt",
-      "Liaison inconnue",
+      "Linked Deco unknown",
+      "Gekoppelde Deco onbekend",
+      "Verbundener Deco unbekannt",
+      "Deco associé inconnu",
     ],
     topologyNote: [
       "A logical view of the main Deco and reported satellite connections.",
@@ -647,6 +647,18 @@
       "Deco meldet optimale Einstellungen",
       "Deco indique que les réglages sont optimaux",
     ],
+    wifiLastAdvice: [
+      "Last known advice",
+      "Laatst bekende advies",
+      "Zuletzt gemeldete Empfehlung",
+      "Dernier conseil disponible",
+    ],
+    wifiNoOptimization: [
+      "No optimization needed",
+      "Geen optimalisatie nodig",
+      "Keine Optimierung nötig",
+      "Aucune optimisation nécessaire",
+    ],
     wifiRecommended: [
       "Optimization recommended",
       "Optimalisatie aanbevolen",
@@ -708,10 +720,16 @@
       "Deco a signalé une analyse terminée.",
     ],
     wifiNotObserved: [
-      "A completed scan was not observed. The latest available Deco advice is shown.",
-      "Een voltooide scan is niet waargenomen. Je ziet het laatst beschikbare Deco-advies.",
-      "Ein abgeschlossener Scan wurde nicht beobachtet. Die letzte verfügbare Deco-Empfehlung wird angezeigt.",
-      "Aucune analyse terminée n’a été observée. Le dernier conseil Deco disponible est affiché.",
+      "No new scan result was reported.",
+      "Er is geen nieuwe scanuitslag gemeld.",
+      "Es wurde kein neues Scanergebnis gemeldet.",
+      "Aucun nouveau résultat d’analyse n’a été signalé.",
+    ],
+    wifiScanAck: [
+      "Deco acknowledged the scan request.",
+      "Deco heeft het scanverzoek bevestigd.",
+      "Deco hat die Scan-Anfrage bestätigt.",
+      "Deco a accusé réception de la demande d’analyse.",
     ],
     wifiAdviceChanged: [
       "Deco reported updated advice.",
@@ -2436,14 +2454,26 @@
         !WIFI_BUSY.has(state) &&
         state !== "unavailable" &&
         session.previousAdvice !== advice;
+      const scanWithoutResult =
+        freshAdvice && attrs?.outcome === "scan_not_observed";
+      const title = Object.hasOwn(titles, state)
+        ? titles[state]
+        : t.wifiUnknown;
+      const label =
+        scanWithoutResult && (state === "optimal" || state === "optimizable")
+          ? `${t.wifiLastAdvice} · ${state === "optimal" ? t.wifiNoOptimization : title}`
+          : title;
+      const acknowledged = freshAdvice && attrs?.acknowledged === true;
       return {
-        label: Object.hasOwn(titles, state) ? titles[state] : t.wifiUnknown,
+        label,
+        scanWithoutResult,
         outcome:
           freshAdvice && Object.hasOwn(notes, attrs?.outcome)
-            ? notes[attrs.outcome]
+            ? scanWithoutResult && acknowledged
+              ? `${t.wifiScanAck} ${t.wifiNotObserved}`
+              : notes[attrs.outcome]
             : "",
-        acknowledged:
-          freshAdvice && attrs?.acknowledged === true ? t.wifiAck : "",
+        acknowledged: acknowledged && !scanWithoutResult ? t.wifiAck : "",
         request:
           session.pending && !WIFI_BUSY.has(state) && !freshAdvice
             ? t.wifiRequest
@@ -2615,7 +2645,7 @@
       const status = feedback
         ? `<div class="wifi-overview-status" data-state="${esc(monitor.advice.state)}">
           <strong>${feedback.request || feedback.label}</strong>
-          ${feedback.outcome ? `<small>${feedback.outcome}</small>` : ""}
+          ${feedback.outcome && !feedback.scanWithoutResult ? `<small>${feedback.outcome}</small>` : ""}
           ${feedback.acknowledged ? `<small>${feedback.acknowledged}</small>` : ""}
         </div>`
         : "";
@@ -3156,5 +3186,5 @@
       },
       preview: true,
     });
-  console.info(`%c ${CARD_NAME} v3.0.0 `, "background:#008a80;color:white;");
+  console.info(`%c ${CARD_NAME} v3.0.1 `, "background:#008a80;color:white;");
 })();
