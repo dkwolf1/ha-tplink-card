@@ -85,7 +85,7 @@ This updates the name on the Deco and preserves the Home Assistant entity ID. Th
 
 In **Wi-Fi networks**, Home Assistant administrators can turn either network on or off if its Deco switch is available. The card displays the state reported by Home Assistant.
 
-The panel also shows live Deco advice when the monitor is available, even with the dialog closed. Acknowledgment means the request was received.
+The panel shows Deco advice even with the dialog closed. If no new scan result is reported, the panel labels the last known advice. The popup shows a confirmation when Deco acknowledges the scan request.
 
 Enable the experimental feature and configure the SSH host fingerprint in the integration. Home Assistant administrators can then use the available actions. For multiple meshes, select the relevant **Mesh installation** in the card editor.
 
@@ -205,7 +205,7 @@ De naam wijzigt op de Deco en de Home Assistant-entiteits-ID blijft gelijk. De k
 
 In **WiFi-netwerken** kunnen Home Assistant-beheerders beide netwerken aan- of uitzetten als de bijbehorende Deco-schakelaar beschikbaar is. De kaart toont de stand die Home Assistant doorgeeft.
 
-Als de monitor beschikbaar is, toont het overzicht ook het actuele Deco-advies wanneer de popup dicht is. Een bevestiging betekent dat Deco het verzoek heeft ontvangen.
+Het overzicht toont het Deco-advies ook als de popup dicht is. Als er geen nieuwe scanuitslag is gemeld, staat erbij dat je het laatst bekende advies ziet. Zodra Deco het scanverzoek bevestigt, verschijnt die bevestiging in de popup.
 
 Schakel de experimentele functie in en stel de SSH-vingerafdruk in bij de integratie. Daarna kunnen Home Assistant-beheerders de beschikbare acties gebruiken. Kies bij meerdere meshes de juiste **Mesh-installatie** in de kaarteditor.
 
@@ -258,7 +258,7 @@ Unter **WLAN-Netze** können Home-Assistant-Administratoren beide Netze ein- und
 
 Aktiviere die experimentelle Funktion in der Integration und hinterlege dort den SSH-Hostschlüssel-Fingerabdruck. Die verfügbaren Aktionen können nur mit einem Home-Assistant-Administratorkonto ausgeführt werden. Wähle bei mehreren Mesh-Netzen im Karteneditor die passende **Mesh-Installation** aus.
 
-1. Öffne **WLAN-Scan und Optimierung**. Mit **WLAN scannen** speicherst du die Ausgangswerte und startest eine einzelne Scan-Anfrage. Die schematische Animation folgt dem Deco-Status. Die Empfangsbestätigung und das Scan-Ergebnis werden getrennt angezeigt.
+1. Öffne **WLAN-Scan und Optimierung**. Mit **WLAN scannen** speicherst du die Ausgangswerte und startest eine einzelne Scan-Anfrage. Die schematische Animation folgt dem Deco-Status. Ohne neues Scanergebnis kennzeichnet die Übersicht die zuletzt gemeldete Empfehlung. Sobald Deco die Anfrage bestätigt, erscheint die Bestätigung im Dialog.
 2. Wenn Deco eine Optimierung empfiehlt, klicke auf **WLAN optimieren**. Klicke innerhalb von 30 Sekunden mit demselben Administratorkonto auf **WLAN-Optimierung ausführen**. Die WLAN-Verbindung kann kurz ausfallen.
 3. Vergleiche die gemeldeten Werte pro Frequenzband. Ist kein neuer Messwert verfügbar, kennzeichnet die Karte den zuletzt gemeldeten Wert.
 
@@ -272,7 +272,7 @@ Dans **Réseaux Wi-Fi**, les administrateurs de Home Assistant peuvent activer o
 
 Activez la fonction expérimentale dans l’intégration et configurez l’empreinte de la clé d’hôte SSH au même endroit. Les actions disponibles nécessitent un compte administrateur Home Assistant. Si vous avez plusieurs réseaux maillés, sélectionnez l’**Installation Deco** voulue dans l’éditeur de carte.
 
-1. Ouvrez **Analyse et optimisation du Wi-Fi**. Sélectionnez **Analyser le Wi-Fi** pour enregistrer les valeurs de référence et envoyer une seule demande d’analyse. L’animation schématique suit l’état du Deco. La carte affiche séparément l’accusé de réception et le résultat de l’analyse.
+1. Ouvrez **Analyse et optimisation du Wi-Fi**. Sélectionnez **Analyser le Wi-Fi** pour enregistrer les valeurs de référence et envoyer une seule demande d’analyse. L’animation schématique suit l’état du Deco. En l’absence de nouveau résultat, le tableau de bord identifie le dernier conseil disponible. L’accusé de réception apparaît dans la fenêtre dès que Deco confirme la demande.
 2. Lorsque Deco recommande une optimisation, sélectionnez **Optimiser le Wi-Fi**, puis **Lancer l’optimisation du Wi-Fi** dans les 30 secondes avec le même compte administrateur. La connexion Wi-Fi peut être brièvement interrompue.
 3. Comparez les valeurs signalées pour chaque bande. Si aucune valeur récente n’est disponible, la carte indique la dernière valeur signalée.
 

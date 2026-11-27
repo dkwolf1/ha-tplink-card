@@ -382,9 +382,9 @@ test("follows Wi-Fi advice on the overview after the popup closes", async ({
     outcome: "scan_not_observed",
     acknowledged: true,
   });
-  await expect(overview).toContainText("Deco acknowledged the request.");
-  await expect(overview).toContainText("A completed scan was not observed.");
-  await expect(overview).not.toContainText("Deco reported a completed scan.");
+  await expect(overview).toHaveText(
+    "Last known advice · No optimization needed",
+  );
   await update(page, "sensor.mesh_a_result", "optimizable");
   await expect(overview).toHaveText("Optimization recommended");
   await update(page, "sensor.mesh_a_result", "confirm_optimization");
@@ -450,17 +450,26 @@ test("scans once on request, reopens without a scan, and compares real readings 
     outcome: "scan_not_observed",
     acknowledged: true,
   });
+  await expect(popup.locator(".wifi-advice strong")).toHaveText(
+    "Last known advice · Optimization recommended",
+  );
   await expect(
     popup
       .locator(".wifi-advice")
-      .getByText("A completed scan was not observed.", { exact: false }),
-  ).toBeVisible();
-  await expect(
-    popup.locator(".wifi-advice").getByText("Deco acknowledged the request."),
+      .getByText(
+        "Deco acknowledged the scan request. No new scan result was reported.",
+      ),
   ).toBeVisible();
   await expect(
     popup.locator(".wifi-advice").getByText("Deco reported a completed scan."),
   ).toHaveCount(0);
+  await update(page, "sensor.mesh_a_result", "optimizable", {
+    outcome: "scan_not_observed",
+    acknowledged: false,
+  });
+  await expect(popup.locator(".wifi-advice p")).toHaveText(
+    "No new scan result was reported.",
+  );
   await expect(popup.locator(".wifi-sweep")).toHaveCount(0);
   await popup
     .getByRole("button", { name: "Optimize Wi-Fi", exact: true })

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1
+
+- Clarify that the linked Deco is unknown when Home Assistant reports a connection type but provides no identifiable uplink Deco.
+- Label the dashboard's latest known Wi-Fi advice when no new scan result was reported. Show the scan request acknowledgment in the popup when Deco confirms receipt.
+- Update both messages in English, Dutch, German and French.
+
 ## 3.0.0
 
 - **Breaking change.** The Wi-Fi scan and optimization monitor and the guest and IoT switches now require dkwolf1/ha-deco v4.2.0-beta.2 or later. Older versions can still display reported channels, widths and network status. [ha-deco v4.2.0-beta.2](https://github.com/dkwolf1/ha-deco/releases/tag/v4.2.0-beta.2)

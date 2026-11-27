@@ -301,12 +301,12 @@ test("draws only unambiguous reported Deco links", async ({ page }) => {
   });
   await expect(mesh.locator(".link-path")).toHaveCount(1);
   await expect(mesh.locator(".node-link-unknown")).toHaveText([
-    "Verbinding onbekend",
-    "Verbinding onbekend",
+    "Gekoppelde Deco onbekend",
+    "Gekoppelde Deco onbekend",
   ]);
   await expect(
     mesh.locator(".node").filter({ hasText: "Slaapkamer" }),
-  ).not.toContainText("Verbinding onbekend");
+  ).not.toContainText("Gekoppelde Deco onbekend");
   await page.setViewportSize({ width: 320, height: 844 });
   const compact = mesh.locator(".mesh-canvas-compact");
   await expect(compact.locator(".link-path")).toHaveCount(1);
